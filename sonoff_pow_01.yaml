@@ -62,6 +62,7 @@ light:
     name:  ${upper_devicename} Green LED
     id:  ${devicename}_green_led
     output: green_led
+    internal: true # hide from Home Assistant
 
 sensor:
   - platform: wifi_signal

@@ -55,11 +55,13 @@ light:
     name: ${upper_devicename} Blue LED
     id: blue_led_light
     output: blue_led
+    internal: true # hide from Home Assistant
 
   - platform: monochromatic
     name: ${upper_devicename} Red LED
     id: red_led_light
     output: red_led
+    internal: true # hide from Home Assistant
 
 output:
   # Register the LEDs as a dimmable output ....

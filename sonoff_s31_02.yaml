@@ -58,8 +58,8 @@ light:
   - platform: monochromatic
     name: ${upper_devicename} Green LED
     id: ${devicename}_green_led
-    internal: true # hide from Home Assistant
     output: green_led
+    internal: true # hide from Home Assistant
 
 output:
   # Register the green LED as a dimmable output

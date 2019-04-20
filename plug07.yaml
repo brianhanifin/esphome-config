@@ -50,6 +50,7 @@ light:
     name: ${upper_devicename} Blue LED
     id: ${devicename}_blue_led
     output: blue_led
+    internal: true # hide from Home Assistant
 
 output:
   # Register the LEDs as a dimmable output ....
