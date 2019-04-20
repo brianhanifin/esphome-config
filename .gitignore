@@ -1,0 +1,6 @@
+# Ignore all subfolders.
+**/
+
+# Specific file ignores
+/secrets.yaml
+.DS_Store

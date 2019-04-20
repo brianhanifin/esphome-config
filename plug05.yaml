@@ -1,0 +1,97 @@
+# Luntak brand Tuya Plug
+#
+substitutions:
+  devicename: plug05
+  upper_devicename: Plug05
+
+esphome:
+  name: ${devicename}
+  platform: ESP8266
+  board: esp01_1m
+  
+  # Turn on the LED on boot
+  on_boot:
+    priority: -10
+    then:
+      - light.turn_on: blue_led_light
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+
+# Enable Home Assistant API
+api:
+
+ota:
+  safe_mode: True
+
+logger:
+
+binary_sensor:
+  - platform: status
+    name: ${upper_devicename} Status
+    id: ${devicename}_status
+    
+  - platform: gpio
+    pin:
+      number: GPIO13
+      mode: INPUT_PULLUP
+      inverted: True
+    name: ${upper_devicename} Button
+    id: ${devicename}_button
+    on_press:
+      - switch.toggle: relay
+    filters:
+      - delayed_on: 10ms
+
+light:
+  # ... and then make a light out of it.
+  - platform: monochromatic
+    name: ${upper_devicename} Blue LED
+    id: blue_led_light
+    output: blue_led
+
+output:
+  # Register the LEDs as a dimmable output ....
+  - platform: esp8266_pwm
+    id: blue_led
+    pin:
+      number: GPIO2
+      inverted: True
+
+sensor:
+  - platform: wifi_signal
+    name: ${devicename}__wifi_signal
+    update_interval: 30s
+
+  - platform: uptime
+    name: ${devicename}_uptime
+
+switch:
+  - platform: gpio
+    id: relay
+    pin: GPIO15
+    
+  - platform: template
+    name: ${upper_devicename}
+    optimistic: no
+    lambda: |-
+      if (id(relay).state) {
+        return true;
+      } else {
+        return false;
+      }
+    turn_on_action:
+      - switch.turn_on: relay
+      - light.turn_off: blue_led_light
+##### Make sure the hot water pump doesn't stay on all day. #####
+      - delay: 10min
+      - switch.turn_off: relay
+      - light.turn_on: blue_led_light
+    turn_off_action:
+      - switch.turn_off: relay
+      - light.turn_on: blue_led_light
+
+text_sensor:
+  - platform: version
+    name: ${devicename}_esphome_version

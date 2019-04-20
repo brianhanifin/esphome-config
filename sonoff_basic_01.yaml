@@ -1,0 +1,57 @@
+# Sonoff Basic Power Module
+#
+substitutions:
+  devicename: sonoff_basic_01
+  upper_devicename: Sonoff Basic 01
+
+esphome:
+  name: ${devicename}
+  platform: ESP8266
+  board: esp01_1m
+  board_flash_mode: dout
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+
+# Enable Home Assistant API
+api:
+
+ota:
+  safe_mode: True
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO0
+      mode: INPUT_PULLUP
+      inverted: True
+    name: ${upper_devicename} Button
+    id: ${devicename}_button
+    on_press:
+      - switch.toggle: relay
+  # - platform: status
+  #   name: ${upper_devicename} Status
+  #   id: ${devicename}_status
+
+output:
+  # Register the green LED as a dimmable output ....
+  - platform: esp8266_pwm
+    id: green_led
+    pin:
+      number: GPIO13
+      inverted: True
+
+light:
+  # ... and then make a light out of it.
+  - platform: monochromatic
+    name: ${upper_devicename} Green LED
+    id: ${devicename}_green_led
+    output: green_led
+
+switch:
+  - platform: gpio
+    name: ${upper_devicename}
+    id: relay
+    pin: GPIO12
+    restore_mode: ALWAYS_OFF
