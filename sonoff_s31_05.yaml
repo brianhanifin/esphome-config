@@ -40,23 +40,24 @@ binary_sensor:
     name: ${upper_devicename} Status
     id: ${devicename}_status
     
-  # - platform: gpio
-  #   pin:
-  #     number: GPIO0
-  #     mode: INPUT_PULLUP
-  #     inverted: True
-  #   name: ${upper_devicename} Button
-  #   id: ${devicename}_button
-  #   on_press:
-  #     - switch.toggle: relay
-  #   filters:
-  #     - delayed_on: 10ms
+  - platform: gpio
+    pin:
+      number: GPIO0
+      mode: INPUT_PULLUP
+      inverted: True
+    name: ${upper_devicename} Button
+    id: ${devicename}_button
+    on_press:
+      - switch.toggle: relay
+    filters:
+      - delayed_on: 10ms
 
 light:
   # Expose the "light" to Home Assistant
   - platform: monochromatic
     name: ${upper_devicename} Green LED
     id: ${devicename}_green_led
+    internal: true # hide from Home Assistant
     output: green_led
 
 output:
@@ -88,7 +89,6 @@ switch:
     name: ${upper_devicename}
     id: relay
     pin: GPIO12
-    restore_mode: ALWAYS_ON
 
 text_sensor:
   - platform: version
