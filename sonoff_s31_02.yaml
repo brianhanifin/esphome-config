@@ -39,7 +39,7 @@ binary_sensor:
   - platform: status
     name: ${upper_devicename} Status
     id: ${devicename}_status
-    
+  
   # Re-enable the following lines to re-enable the physical power button on the plug.
   # - platform: gpio
   #   pin:
@@ -58,6 +58,7 @@ light:
   - platform: monochromatic
     name: ${upper_devicename} Green LED
     id: ${devicename}_green_led
+    internal: true # hide from Home Assistant
     output: green_led
 
 output:
@@ -88,6 +89,7 @@ switch:
   - platform: gpio
     name: ${upper_devicename}
     id: relay
+    internal: true # hide from Home Assistant
     pin: GPIO12
     
     # Remark out the following line if you do not wish the switch to be turned upon boot.
