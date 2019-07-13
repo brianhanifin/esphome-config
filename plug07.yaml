@@ -13,7 +13,7 @@ esphome:
   on_boot:
     priority: -10
     then:
-      - light.turn_on:  ${devicename}_blue_led
+      - light.turn_on: blue_led_light
 
 wifi:
   ssid: !secret wifi_ssid
@@ -48,7 +48,7 @@ light:
   # ... and then make a light out of it.
   - platform: monochromatic
     name: ${upper_devicename} Blue LED
-    id: ${devicename}_blue_led
+    id: blue_led_light
     output: blue_led
     internal: true # hide from Home Assistant
 
