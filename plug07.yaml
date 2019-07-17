@@ -28,9 +28,9 @@ ota:
 logger:
 
 binary_sensor:
-  - platform: status
-    name: ${upper_devicename} Status
-    id: ${devicename}_status
+  # - platform: status
+  #   name: ${upper_devicename} Status
+  #   id: ${devicename}_status
     
   - platform: gpio
     pin:
@@ -39,6 +39,7 @@ binary_sensor:
       inverted: True
     name: ${upper_devicename} Button
     id: ${devicename}_button
+    internal: true # hide from Home Assistant
     on_press:
       - switch.toggle: relay
     filters:
@@ -60,13 +61,13 @@ output:
       number: GPIO2
       inverted: True
 
-sensor:
-  - platform: wifi_signal
-    name: ${devicename}_wifi_signal
-    update_interval: 30s
+# sensor:
+#   - platform: wifi_signal
+#     name: ${devicename}_wifi_signal
+#     update_interval: 30s
 
-  - platform: uptime
-    name: ${devicename}_uptime
+#   - platform: uptime
+#     name: ${devicename}_uptime
 
 switch:
   - platform: gpio
@@ -89,6 +90,6 @@ switch:
       - switch.turn_off: relay
       - light.turn_on: blue_led_light
 
-text_sensor:
-  - platform: version
-    name: ${devicename}_esphome_version
+# text_sensor:
+#   - platform: version
+#     name: ${devicename}_esphome_version
