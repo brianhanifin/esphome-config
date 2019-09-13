@@ -1,11 +1,9 @@
-# Sonoff Basic Power Module
+# Shelly 1 Power Module
 #
 substitutions:
   devicename: shelly1_01
   upper_devicename: Shelly1 01
   hass_light: light.dining_room
-  hass_status: hass/status
-  mqtt_prefix: esphome
 
 esphome:
   name: ${devicename}
@@ -20,35 +18,35 @@ wifi:
 # Enable Home Assistant API
 api:
 
-# Enable MQTT to watch for Home Assistant to come back online.
-mqtt:
-  broker: 10.0.0.56
-  discovery: false
-  topic_prefix: ${mqtt_prefix}
-  birth_message:
-    topic: ${mqtt_prefix}/status/${devicename}
-    payload: online
-  will_message:
-    topic: ${mqtt_prefix}/status/${devicename}
-    payload: offline
-
 ota:
   safe_mode: True
 
 logger:
 
 script:
-  - id: dining_room_light_toggle
+  - id: hass_light_toggle
     then:
       if:
         condition:
           api.connected:
         then:
-          # Have Home Assistant toggle the light.
-          - homeassistant.service:
-              service: light.toggle
-              data:
-                entity_id: ${hass_light}
+          - if:
+              condition:
+                switch.is_off: relay
+              then:
+                # Turn the relay back on and turn on the light.
+                - switch.turn_on: relay
+                
+                - homeassistant.service:
+                    service: light.turn_on
+                    data:
+                      entity_id: ${hass_light}
+              else:
+                # Have Home Assistant toggle the light.
+                - homeassistant.service:
+                    service: light.toggle
+                    data:
+                      entity_id: ${hass_light}
         else:
           # When HA is unavailable, toggle the relay.
           - switch.toggle: relay
@@ -64,9 +62,9 @@ binary_sensor:
       - delayed_on: 10ms
       - delayed_off: 10ms
     on_press:
-      - script.execute: dining_room_light_toggle
+      - script.execute: hass_light_toggle
     on_release:
-      - script.execute: dining_room_light_toggle
+      - script.execute: hass_light_toggle
 
 switch:
   # Relay is for internal use only. Do not expose to Home Assistant.
@@ -74,26 +72,3 @@ switch:
     id: relay
     pin: GPIO4
     restore_mode: ALWAYS_ON
-    internal: true
-
-text_sensor:
-  - platform: mqtt_subscribe
-    id: mqtt_hass_status
-    topic: ${hass_status}
-    on_value:
-      if:
-        condition:
-          text_sensor.state:
-            id: mqtt_hass_status
-            state: online
-        then:
-          if:
-            condition:
-              switch.is_off: relay
-            then:
-              - homeassistant.service:
-                  service: light.turn_off
-                  data:
-                    entity_id: ${hass_light}
-              
-              - switch.turn_on: relay
