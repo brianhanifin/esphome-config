@@ -4,3 +4,4 @@
 # Specific file ignores
 /secrets.yaml
 .DS_Store
+._*
