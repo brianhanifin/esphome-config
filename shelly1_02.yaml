@@ -1,0 +1,107 @@
+# Shelly 2 Power Module
+#
+substitutions:
+  devicename: shelly1_02
+  upper_devicename: Shelly1 02
+
+esphome:
+  name: ${devicename}
+  platform: ESP8266
+  board: esp01_1m
+  board_flash_mode: dout
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  
+  # Fallback Hotspot (requires "captive_portal:").
+  ap:
+    ssid: "shelly1_02" #${devicename}
+    password: "12345678"
+
+captive_portal:
+
+
+# Enable Home Assistant API
+api:
+
+ota:
+  safe_mode: True
+
+logger:
+
+script:
+  - id: relay_off_after_delay
+    then:
+      - if:
+          condition:
+            lambda: |-
+              return id(humidity).state < 50;
+          then:
+            # Turn off a manually turned on fan after 15 minutes, but only if humidity is below 50%.
+            - delay: 15min
+            - switch.turn_off: relay
+          else:
+            # No matter what, turn the fan off after an hour.
+            - delay: 60min
+            - switch.turn_off: relay
+
+  - id: relay_toggle
+    then:
+      if:
+        condition:
+          api.connected:
+        then:
+          - if:
+              condition:
+                switch.is_off: relay
+              then:
+                # Turn the relay on as requested.
+                - switch.turn_on: relay
+                
+                - script.execute: relay_off_after_delay
+              else:
+                # Turn the switch off as requested.
+                - switch.turn_off: relay
+                
+        else:
+          # When Home Assistant is unavailable, just toggle the relay.
+          - switch.toggle: relay
+                
+
+binary_sensor:
+  # Physical Toggle Switch. Monitor for switch position changes internally. Do not expose to Home Assistant.
+  - platform: gpio
+    pin:
+      number: GPIO5
+      inverted: True
+    #name: ${upper_devicename} Button
+    id: button
+    filters:
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+    on_press:
+      - script.execute: relay_toggle
+    on_release:
+      - script.execute: relay_toggle
+
+sensor:
+  # Monitor the humidity from Home Assistant.
+  - platform: homeassistant
+    id: humidity
+    entity_id: sensor.upstairs_bathroom_humidity
+    on_value_range:
+      - above: 55.0
+        then:
+          - switch.turn_on: relay
+      - below: 50.0
+        then:
+          - switch.turn_off: relay
+
+switch:
+  # Physical relay to turn power on and off.
+  - platform: gpio
+    id: relay
+    name: ${devicename}
+    pin: GPIO4
+    restore_mode: ALWAYS_OFF
