@@ -116,7 +116,7 @@ sensor:
       name: ${plant1_upper} Temperature
       id: ${plant1}_temperature
       filters:
-      - filter_nan:
+      - filter_out: nan
       - lambda: return x * (9.0/5.0) + 32.0;
       unit_of_measurement: "°F"
     moisture:
@@ -124,17 +124,17 @@ sensor:
       icon: mdi:water-percent
       id: ${plant1}_moisture
       filters:
-      - filter_nan:
+      - filter_out: nan
     illuminance:
       name: ${plant1_upper} Illuminance
       id: ${plant1}_illuminance
       filters:
-      - filter_nan:
+      - filter_out: nan
     conductivity:
       name: ${plant1_upper} Soil Conductivity
       id: ${plant1}_conductivity
       filters:
-      - filter_nan:
+      - filter_out: nan
 
   - platform: xiaomi_miflora
     mac_address: ${plant2_mac}
@@ -142,7 +142,7 @@ sensor:
       name: ${plant2_upper} Temperature
       id: ${plant2}_temperature
       filters:
-      - filter_nan:
+      - filter_out: nan
       - lambda: return x * (9.0/5.0) + 32.0;
       unit_of_measurement: "°F"
     moisture:
@@ -150,17 +150,17 @@ sensor:
       icon: mdi:water-percent
       id: ${plant2}_moisture
       filters:
-      - filter_nan:
+      - filter_out: nan
     illuminance:
       name: ${plant2_upper} Illuminance
       id: ${plant2}_illuminance
       filters:
-      - filter_nan:
+      - filter_out: nan
     conductivity:
       name: ${plant2_upper} Soil Conductivity
       id: ${plant2}_conductivity
       filters:
-      - filter_nan:
+      - filter_out: nan
 
   - platform: xiaomi_miflora
     mac_address: ${plant3_mac}
@@ -168,7 +168,7 @@ sensor:
       name: ${plant3_upper} Temperature
       id: ${plant3}_temperature
       filters:
-      - filter_nan:
+      - filter_out: nan
       - lambda: return x * (9.0/5.0) + 32.0;
       unit_of_measurement: "°F"
     moisture:
@@ -176,17 +176,17 @@ sensor:
       icon: mdi:water-percent
       id: ${plant3}_moisture
       filters:
-      - filter_nan:
+      - filter_out: nan
     illuminance:
       name: ${plant3_upper} Illuminance
       id: ${plant3}_illuminance
       filters:
-      - filter_nan:
+      - filter_out: nan
     conductivity:
       name: ${plant3_upper} Soil Conductivity
       id: ${plant3}_conductivity
       filters:
-      - filter_nan:
+      - filter_out: nan
 
   - platform: xiaomi_miflora
     mac_address: ${plant4_mac}
@@ -194,7 +194,7 @@ sensor:
       name: ${plant4_upper} Temperature
       id: ${plant4}_temperature
       filters:
-      - filter_nan:
+      - filter_out: nan
       - lambda: return x * (9.0/5.0) + 32.0;
       unit_of_measurement: "°F"
     moisture:
@@ -202,17 +202,17 @@ sensor:
       icon: mdi:water-percent
       id: ${plant4}_moisture
       filters:
-      - filter_nan:
+      - filter_out: nan
     illuminance:
       name: ${plant4_upper} Illuminance
       id: ${plant4}_illuminance
       filters:
-      - filter_nan:
+      - filter_out: nan
     conductivity:
       name: ${plant4_upper} Soil Conductivity
       id: ${plant4}_conductivity
       filters:
-      - filter_nan:
+      - filter_out: nan
 
   - platform: xiaomi_miflora
     mac_address: ${plant5_mac}
@@ -220,7 +220,7 @@ sensor:
       name: ${plant5_upper} Temperature
       id: ${plant5}_temperature
       filters:
-      - filter_nan:
+      - filter_out: nan
       - lambda: return x * (9.0/5.0) + 32.0;
       unit_of_measurement: "°F"
     moisture:
@@ -228,17 +228,17 @@ sensor:
       icon: mdi:water-percent
       id: ${plant5}_moisture
       filters:
-      - filter_nan:
+      - filter_out: nan
     illuminance:
       name: ${plant5_upper} Illuminance
       id: ${plant5}_illuminance
       filters:
-      - filter_nan:
+      - filter_out: nan
     conductivity:
       name: ${plant5_upper} Soil Conductivity
       id: ${plant5}_conductivity
       filters:
-      - filter_nan:
+      - filter_out: nan
 
   - platform: xiaomi_miflora
     mac_address: ${plant6_mac}
@@ -246,7 +246,7 @@ sensor:
       name: ${plant6_upper} Temperature
       id: ${plant6}_temperature
       filters:
-      - filter_nan:
+      - filter_out: nan
       - lambda: return x * (9.0/5.0) + 32.0;
       unit_of_measurement: "°F"
     moisture:
@@ -254,18 +254,18 @@ sensor:
       icon: mdi:water-percent
       id: ${plant6}_moisture
       filters:
-      - filter_nan:
+      - filter_out: nan
     illuminance:
       name: ${plant6_upper} Illuminance
       id: ${plant6}_illuminance
       filters:
-      - filter_nan:
+      - filter_out: nan
     conductivity:
       name: ${plant6_upper} Soil Conductivity
       id: ${plant6}_conductivity
       filters:
-      - filter_nan:
+      - filter_out: nan
 
-text_sensor:
-  - platform: version
-    name: ${devicename} Esphome Version
+# text_sensor:
+#   - platform: version
+#     name: ${devicename} Esphome Version
