@@ -13,6 +13,13 @@ esphome:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
+  
+  # Fallback Hotspot (requires "captive_portal:").
+#   ap:
+#     ssid: ${devicename}
+#     password: "12345678"
+
+# captive_portal:
 
 # Enable Home Assistant API
 api:
@@ -20,16 +27,20 @@ api:
 ota:
   safe_mode: True
 
+logger:
+
 binary_sensor:
-  - platform: gpio
-    pin:
-      number: GPIO0
-      mode: INPUT_PULLUP
-      inverted: True
-    name: ${upper_devicename} Button
-    id: ${devicename}_button
-    on_press:
-      - switch.toggle: relay
+  ## DISABLED due to the button being broken.
+  # - platform: gpio
+  #   pin:
+  #     number: GPIO0
+  #     mode: INPUT_PULLUP
+  #     inverted: True
+  #   name: ${upper_devicename} Button
+  #   id: ${devicename}_button
+  #   on_press:
+  #     - switch.toggle: relay
+
   # - platform: status
   #   name: ${upper_devicename} Status
   #   id: ${devicename}_status

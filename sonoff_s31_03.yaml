@@ -34,18 +34,17 @@ api:
 ota:
   safe_mode: True
 
-
 binary_sensor:
-  - platform: status
-    name: ${upper_devicename} Status
-    id: ${devicename}_status
+  # - platform: status
+  #   name: ${upper_devicename} Status
+  #   id: ${devicename}_status
     
   - platform: gpio
     pin:
       number: GPIO0
       mode: INPUT_PULLUP
       inverted: True
-    name: ${upper_devicename} Button
+    #name: ${upper_devicename} Button
     id: ${devicename}_button
     on_press:
       - switch.toggle: relay
@@ -55,7 +54,7 @@ binary_sensor:
 light:
   # Expose the "light" to Home Assistant
   - platform: monochromatic
-    name: ${upper_devicename} Green LED
+    #name: ${upper_devicename} Green LED
     id: ${devicename}_green_led
     output: green_led
     internal: true # hide from Home Assistant
@@ -69,12 +68,12 @@ output:
       inverted: True
     
 sensor:
-  - platform: wifi_signal
-    name: ${devicename}_wifi_signal
-    update_interval: 30s
+  # - platform: wifi_signal
+  #   name: ${devicename}_wifi_signal
+  #   update_interval: 30s
 
-  - platform: uptime
-    name: ${devicename}_uptime
+  # - platform: uptime
+  #   name: ${devicename}_uptime
     
   - platform: cse7766
     current:
@@ -90,6 +89,6 @@ switch:
     id: relay
     pin: GPIO12
 
-text_sensor:
-  - platform: version
-    name: ${devicename}_esphome_version
+# text_sensor:
+#   - platform: version
+#     name: ${devicename}_esphome_version

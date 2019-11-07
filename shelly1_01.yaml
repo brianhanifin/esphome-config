@@ -1,27 +1,18 @@
 # Shelly 1 Power Module
+# Location: Dining Room Light Switch
 #
 substitutions:
   devicename: shelly1_01
   upper_devicename: Shelly1 01
+  
   hass_light: light.dining_room
+  <<: !include common/substitutions/shelly1_gpio.yaml
 
-esphome:
-  name: ${devicename}
-  platform: ESP8266
-  board: esp01_1m
-  board_flash_mode: dout
-
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_pass
-
-# Enable Home Assistant API
-api:
-
-ota:
-  safe_mode: True
-
-logger:
+<<: !include common/esphome/esp8266.yaml
+<<: !include common/wifi.yaml
+<<: !include common/api.yaml
+<<: !include common/ota.yaml
+<<: !include common/logger.yaml
 
 script:
   - id: hass_light_toggle
@@ -40,13 +31,13 @@ script:
                 - homeassistant.service:
                     service: light.turn_on
                     data:
-                      entity_id: ${hass_light}
+                      entity_id: $hass_light
               else:
                 # Have Home Assistant toggle the light.
                 - homeassistant.service:
                     service: light.toggle
                     data:
-                      entity_id: ${hass_light}
+                      entity_id: $hass_light
         else:
           # When HA is unavailable, toggle the relay.
           - switch.toggle: relay
@@ -54,9 +45,9 @@ script:
 binary_sensor:
   - platform: gpio
     pin:
-      number: GPIO5
+      number: $button_pin
       inverted: True
-    name: ${upper_devicename} Button
+    name: $upper_devicename Button
     id: button
     filters:
       - delayed_on: 10ms
@@ -70,5 +61,5 @@ switch:
   # Relay is for internal use only. Do not expose to Home Assistant.
   - platform: gpio
     id: relay
-    pin: GPIO4
+    pin: $relay_pin
     restore_mode: ALWAYS_ON

@@ -27,7 +27,7 @@ These are simple round wall plugs were flashed with over the air with tasmota-co
 ### Shelly1's
 These devices are great for shoving in a box behind a light switch to add smarts.
 
-#### Dining Room Wall Switch: shelly01.yaml
+#### Dining Room Wall Switch: shelly1_01.yaml
 I coded this to be create a smart switch that is compatible with a chandelier with 9 hue bulbs. It's relay is disabled, unless Home Assistant is unavailable. This allows it to operate as a virtual 3-way switch with Home Assistant, as well as failing gracefully should Home Assistant be offline to act as a dumb toggle switch.
 
 #### Upstairs Bathroom Fan: shelly1_02.yaml

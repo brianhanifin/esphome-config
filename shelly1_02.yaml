@@ -4,31 +4,13 @@ substitutions:
   devicename: shelly1_02
   upper_devicename: Shelly1 02
 
-esphome:
-  name: ${devicename}
-  platform: ESP8266
-  board: esp01_1m
-  board_flash_mode: dout
+  <<: !include common/substitutions/shelly1_gpio.yaml
 
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_pass
-  
-  # Fallback Hotspot (requires "captive_portal:").
-  ap:
-    ssid: "shelly1_02" #${devicename}
-    password: "12345678"
-
-captive_portal:
-
-
-# Enable Home Assistant API
-api:
-
-ota:
-  safe_mode: True
-
-logger:
+<<: !include common/esphome/esp8266.yaml
+<<: !include common/wifi.yaml
+<<: !include common/api.yaml
+<<: !include common/ota.yaml
+<<: !include common/logger.yaml
 
 script:
   - id: relay_off_after_delay
@@ -75,7 +57,7 @@ binary_sensor:
     pin:
       number: GPIO5
       inverted: True
-    #name: ${upper_devicename} Button
+    #name: $upper_devicename Button
     id: button
     filters:
       - delayed_on: 10ms
@@ -102,6 +84,6 @@ switch:
   # Physical relay to turn power on and off.
   - platform: gpio
     id: relay
-    name: ${devicename}
+    name: $devicename
     pin: GPIO4
     restore_mode: ALWAYS_OFF

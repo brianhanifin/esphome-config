@@ -3,269 +3,207 @@
 substitutions:
   devicename: bluetooth_hub
   upper_devicename: BLE Hub
+  <<: !include common/substitutions/bluetooth_hub.yaml
 
-  # Xiaomi Digital Thermometer + Humidity Sensor
-  temp1_mac: !secret temp1_mac
-  temp1: xiaomi_mijia_01
-  temp1_upper: Xiaomi MiJia 01
-
-  # Xiaomi Mi Flora 01
-  plant1_mac: !secret plant1_mac
-  plant1: xiaomi_miflora_01
-  plant1_upper: Xiaomi MiFlora 01
-
-  # Xiaomi Mi Flora 02: "North" Plant Monitor
-  plant2_mac: !secret plant2_mac
-  plant2: xiaomi_miflora_02
-  plant2_upper: Xiaomi MiFlora 02
-
-  # Xiaomi Mi Flora 03: "North" Plant Monitor
-  plant3_mac: !secret plant3_mac
-  plant3: xiaomi_miflora_03
-  plant3_upper: Xiaomi MiFlora 03
-
-  # Xiaomi Mi Flora 04: "North" Plant Monitor
-  plant4_mac: !secret plant4_mac
-  plant4: xiaomi_miflora_04
-  plant4_upper: Xiaomi MiFlora 04
-
-  # Xiaomi Mi Flora 05: "North" Plant Monitor
-  plant5_mac: !secret plant5_mac
-  plant5: xiaomi_miflora_05
-  plant5_upper: Xiaomi MiFlora 05
-
-  # Xiaomi Mi Flora 06: "North" Plant Monitor
-  plant6_mac: !secret plant6_mac
-  plant6: xiaomi_miflora_06
-  plant6_upper: Xiaomi MiFlora 06
-
-esphome:
-  name: ${devicename}
-  platform: ESP32
-  board: esp-wrover-kit
-
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_pass
-
-# Enable logging
-logger:
-
-# Enable Home Assistant API
-api:
-
-ota:
-
-binary_sensor:
-  - platform: status
-    name: ${upper_devicename} Status
-    id: ${devicename}_status
+<<: !include common/esphome/esp32_wrover.yaml
+<<: !include common/wifi.yaml
+<<: !include common/ota.yaml
+<<: !include common/logger.yaml
+<<: !include common/api.yaml
 
 esp32_ble_tracker:
-  scan_interval: 30s
 
 sensor:
-  - platform: ble_rssi
-    mac_address: ${temp1_mac}
-    id: ${temp1}
-    name: ${temp1_upper}
-  - platform: ble_rssi
-    mac_address: ${plant1_mac}
-    id: ${plant1}
-    name: ${plant1_upper}
-  - platform: ble_rssi
-    mac_address: ${plant2_mac}
-    id: ${plant2}
-    name: ${plant2_upper}
-  - platform: ble_rssi
-    mac_address: ${plant3_mac}
-    id: ${plant3}
-    name: ${plant3_upper}
-  - platform: ble_rssi
-    mac_address: ${plant4_mac}
-    id: ${plant4}
-    name: ${plant4_upper}
-  - platform: ble_rssi
-    mac_address: ${plant5_mac}
-    id: ${plant5}
-    name: ${plant5_upper}
-  - platform: ble_rssi
-    mac_address: ${plant6_mac}
-    id: ${plant6}
-    name: ${plant6_upper}
+  # - platform: ble_rssi
+  #   mac_address: $temp1_mac
+  #   id: $temp1
+  #   name: $temp1_upper
+  # - platform: ble_rssi
+  #   mac_address: $plant1_mac
+  #   id: $plant1
+  #   name: $plant1_upper
+  # - platform: ble_rssi
+  #   mac_address: $plant2_mac
+  #   id: $plant2
+  #   name: $plant2_upper
+  # - platform: ble_rssi
+  #   mac_address: $plant3_mac
+  #   id: $plant3
+  #   name: $plant3_upper
+  # - platform: ble_rssi
+  #   mac_address: $plant4_mac
+  #   id: $plant4
+  #   name: $plant4_upper
+  # - platform: ble_rssi
+  #   mac_address: $plant5_mac
+  #   id: $plant5
+  #   name: $plant5_upper
+  # - platform: ble_rssi
+  #   mac_address: $plant6_mac
+  #   id: $plant6
+  #   name: $plant6_upper
 
-  - platform: wifi_signal
-    name: ${devicename} WiFi Signal
-    update_interval: 30s
-
-  - platform: uptime
-    name: ${devicename} Uptime
-
-  - platform: xiaomi_mijia
-    mac_address: ${temp1_mac}
+  - platform: xiaomi_lywsdcgq
+    mac_address: $temp1_mac
     temperature:
-      name: ${temp1_upper} Temperature
+      name: $temp1_upper Temperature
       id: ${temp1}_temperature
     humidity:
-      name: ${temp1_upper} Humidity
+      name: $temp1_upper Humidity
       id: ${temp1}_humidity
 
-  - platform: xiaomi_miflora
-    mac_address: ${plant1_mac}
+  - platform: xiaomi_hhccjcy01
+    mac_address: $plant1_mac
     temperature:
-      name: ${plant1_upper} Temperature
+      name: $plant1_upper Temperature
       id: ${plant1}_temperature
       filters:
       - filter_out: nan
       - lambda: return x * (9.0/5.0) + 32.0;
       unit_of_measurement: "°F"
     moisture:
-      name: ${plant1_upper} Moisture
+      name: $plant1_upper Moisture
       icon: mdi:water-percent
       id: ${plant1}_moisture
       filters:
       - filter_out: nan
     illuminance:
-      name: ${plant1_upper} Illuminance
+      name: $plant1_upper Illuminance
       id: ${plant1}_illuminance
       filters:
       - filter_out: nan
     conductivity:
-      name: ${plant1_upper} Soil Conductivity
+      name: $plant1_upper Soil Conductivity
       id: ${plant1}_conductivity
       filters:
       - filter_out: nan
 
-  - platform: xiaomi_miflora
-    mac_address: ${plant2_mac}
+  - platform: xiaomi_hhccjcy01
+    mac_address: $plant2_mac
     temperature:
-      name: ${plant2_upper} Temperature
+      name: $plant2_upper Temperature
       id: ${plant2}_temperature
       filters:
       - filter_out: nan
       - lambda: return x * (9.0/5.0) + 32.0;
       unit_of_measurement: "°F"
     moisture:
-      name: ${plant2_upper} Moisture
+      name: $plant2_upper Moisture
       icon: mdi:water-percent
       id: ${plant2}_moisture
       filters:
       - filter_out: nan
     illuminance:
-      name: ${plant2_upper} Illuminance
+      name: $plant2_upper Illuminance
       id: ${plant2}_illuminance
       filters:
       - filter_out: nan
     conductivity:
-      name: ${plant2_upper} Soil Conductivity
+      name: $plant2_upper Soil Conductivity
       id: ${plant2}_conductivity
       filters:
       - filter_out: nan
 
-  - platform: xiaomi_miflora
-    mac_address: ${plant3_mac}
+  - platform: xiaomi_hhccjcy01
+    mac_address: $plant3_mac
     temperature:
-      name: ${plant3_upper} Temperature
+      name: $plant3_upper Temperature
       id: ${plant3}_temperature
       filters:
       - filter_out: nan
       - lambda: return x * (9.0/5.0) + 32.0;
       unit_of_measurement: "°F"
     moisture:
-      name: ${plant3_upper} Moisture
+      name: $plant3_upper Moisture
       icon: mdi:water-percent
       id: ${plant3}_moisture
       filters:
       - filter_out: nan
     illuminance:
-      name: ${plant3_upper} Illuminance
+      name: $plant3_upper Illuminance
       id: ${plant3}_illuminance
       filters:
       - filter_out: nan
     conductivity:
-      name: ${plant3_upper} Soil Conductivity
+      name: $plant3_upper Soil Conductivity
       id: ${plant3}_conductivity
       filters:
       - filter_out: nan
 
-  - platform: xiaomi_miflora
-    mac_address: ${plant4_mac}
+  - platform: xiaomi_hhccjcy01
+    mac_address: $plant4_mac
     temperature:
-      name: ${plant4_upper} Temperature
+      name: $plant4_upper Temperature
       id: ${plant4}_temperature
       filters:
       - filter_out: nan
       - lambda: return x * (9.0/5.0) + 32.0;
       unit_of_measurement: "°F"
     moisture:
-      name: ${plant4_upper} Moisture
+      name: $plant4_upper Moisture
       icon: mdi:water-percent
       id: ${plant4}_moisture
       filters:
       - filter_out: nan
     illuminance:
-      name: ${plant4_upper} Illuminance
+      name: $plant4_upper Illuminance
       id: ${plant4}_illuminance
       filters:
       - filter_out: nan
     conductivity:
-      name: ${plant4_upper} Soil Conductivity
+      name: $plant4_upper Soil Conductivity
       id: ${plant4}_conductivity
       filters:
       - filter_out: nan
 
-  - platform: xiaomi_miflora
-    mac_address: ${plant5_mac}
+  - platform: xiaomi_hhccjcy01
+    mac_address: $plant5_mac
     temperature:
-      name: ${plant5_upper} Temperature
+      name: $plant5_upper Temperature
       id: ${plant5}_temperature
       filters:
       - filter_out: nan
       - lambda: return x * (9.0/5.0) + 32.0;
       unit_of_measurement: "°F"
     moisture:
-      name: ${plant5_upper} Moisture
+      name: $plant5_upper Moisture
       icon: mdi:water-percent
       id: ${plant5}_moisture
       filters:
       - filter_out: nan
     illuminance:
-      name: ${plant5_upper} Illuminance
+      name: $plant5_upper Illuminance
       id: ${plant5}_illuminance
       filters:
       - filter_out: nan
     conductivity:
-      name: ${plant5_upper} Soil Conductivity
+      name: $plant5_upper Soil Conductivity
       id: ${plant5}_conductivity
       filters:
       - filter_out: nan
 
-  - platform: xiaomi_miflora
-    mac_address: ${plant6_mac}
-    temperature:
-      name: ${plant6_upper} Temperature
-      id: ${plant6}_temperature
-      filters:
-      - filter_out: nan
-      - lambda: return x * (9.0/5.0) + 32.0;
-      unit_of_measurement: "°F"
-    moisture:
-      name: ${plant6_upper} Moisture
-      icon: mdi:water-percent
-      id: ${plant6}_moisture
-      filters:
-      - filter_out: nan
-    illuminance:
-      name: ${plant6_upper} Illuminance
-      id: ${plant6}_illuminance
-      filters:
-      - filter_out: nan
-    conductivity:
-      name: ${plant6_upper} Soil Conductivity
-      id: ${plant6}_conductivity
-      filters:
-      - filter_out: nan
-
-# text_sensor:
-#   - platform: version
-#     name: ${devicename} Esphome Version
+  # - platform: xiaomi_hhccjcy01
+  #   mac_address: $plant6_mac
+  #   temperature:
+  #     name: $plant6_upper Temperature
+  #     id: ${plant6}_temperature
+  #     filters:
+  #     - filter_out: nan
+  #     - lambda: return x * (9.0/5.0) + 32.0;
+  #     unit_of_measurement: "°F"
+  #   moisture:
+  #     name: $plant6_upper Moisture
+  #     icon: mdi:water-percent
+  #     id: ${plant6}_moisture
+  #     filters:
+  #     - filter_out: nan
+  #   illuminance:
+  #     name: $plant6_upper Illuminance
+  #     id: ${plant6}_illuminance
+  #     filters:
+  #     - filter_out: nan
+  #   conductivity:
+  #     name: $plant6_upper Soil Conductivity
+  #     id: ${plant6}_conductivity
+  #     filters:
+  #     - filter_out: nan
