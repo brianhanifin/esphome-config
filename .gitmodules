@@ -1,0 +1,3 @@
+[submodule "3rd_party/irrigation-with-display"]
+	path = 3rd_party/irrigation-with-display
+	url = https://github.com/brianhanifin/Irrigation-with-display.git

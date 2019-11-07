@@ -7,5 +7,6 @@ secrets.yaml
 ._*
 
 # Included subfolders.
+!.vscode
 !common
-!common/**/**/**/**/**/**/**
+!common/**/**/**/**
