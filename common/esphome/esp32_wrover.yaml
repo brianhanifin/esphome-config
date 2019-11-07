@@ -1,0 +1,5 @@
+---
+esphome:
+  name: $devicename
+  platform: ESP32
+  board: esp-wrover-kit

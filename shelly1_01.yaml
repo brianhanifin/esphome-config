@@ -45,7 +45,7 @@ script:
 binary_sensor:
   - platform: gpio
     pin:
-      number: $button_pin
+      number: $button_gpio
       inverted: True
     name: $upper_devicename Button
     id: button
@@ -61,5 +61,5 @@ switch:
   # Relay is for internal use only. Do not expose to Home Assistant.
   - platform: gpio
     id: relay
-    pin: $relay_pin
+    pin: $relay_gpio
     restore_mode: ALWAYS_ON
