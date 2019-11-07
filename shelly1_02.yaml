@@ -55,7 +55,7 @@ binary_sensor:
   # Physical Toggle Switch. Monitor for switch position changes internally. Do not expose to Home Assistant.
   - platform: gpio
     pin:
-      number: GPIO5
+      number: $button_gpio
       inverted: True
     #name: $upper_devicename Button
     id: button
@@ -85,5 +85,5 @@ switch:
   - platform: gpio
     id: relay
     name: $devicename
-    pin: GPIO4
+    pin: $relay_gpio
     restore_mode: ALWAYS_OFF
