@@ -2,6 +2,6 @@
 **/
 
 # Specific file ignores
-/secrets.yaml
+secrets.yaml
 .DS_Store
 ._*
