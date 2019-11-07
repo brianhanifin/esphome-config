@@ -1,0 +1,11 @@
+---
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+
+  # Fallback Hotspot (requires "captive_portal:").
+  ap:
+    ssid: $devicename
+    password: !secret failover_password
+
+captive_portal:

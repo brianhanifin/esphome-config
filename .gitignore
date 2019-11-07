@@ -1,7 +1,11 @@
 # Ignore all subfolders.
 **/
 
-# Specific file ignores
+# Specific file ignores.
 secrets.yaml
 .DS_Store
 ._*
+
+# Included subfolders.
+!common
+!common/**/**/**/**/**/**/**

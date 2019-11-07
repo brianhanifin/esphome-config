@@ -1,0 +1,3 @@
+---
+platform: version
+name: $upper_devicename Esphome Version

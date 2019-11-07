@@ -1,0 +1,35 @@
+---
+# Xiaomi Digital Thermometer + Humidity Sensor
+temp1_mac: 4C:65:A8:DD:0D:26
+temp1: xiaomi_mijia_01
+temp1_upper: Xiaomi MiJia 01
+
+# Xiaomi Mi Flora 01
+plant1_mac: C4:7C:8D:64:13:BA
+plant1: xiaomi_miflora_01
+plant1_upper: Xiaomi MiFlora 01
+
+# Xiaomi Mi Flora 02: "North" Plant Monitor
+plant2_mac:  C4:7C:8D:63:C9:D5
+plant2: xiaomi_miflora_02
+plant2_upper: Xiaomi MiFlora 02
+
+# Xiaomi Mi Flora 03: "North" Plant Monitor
+plant3_mac: C4:7C:8D:63:C4:64
+plant3: xiaomi_miflora_03
+plant3_upper: Xiaomi MiFlora 03
+
+# Xiaomi Mi Flora 04: "North" Plant Monitor
+plant4_mac: C4:7C:8D:64:05:08
+plant4: xiaomi_miflora_04
+plant4_upper: Xiaomi MiFlora 04
+
+# Xiaomi Mi Flora 05: "North" Plant Monitor
+plant5_mac: C4:7C:8D:63:C4:1B
+plant5: xiaomi_miflora_05
+plant5_upper: Xiaomi MiFlora 05
+
+# Xiaomi Mi Flora 06: "North" Plant Monitor
+plant6_mac: 00:00:00:00:00:00
+plant6: xiaomi_miflora_06
+plant6_upper: Xiaomi MiFlora 06

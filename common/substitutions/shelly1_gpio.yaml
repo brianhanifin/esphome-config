@@ -1,0 +1,3 @@
+---
+button_gpio: GPIO5
+relay_gpio: GPIO4
