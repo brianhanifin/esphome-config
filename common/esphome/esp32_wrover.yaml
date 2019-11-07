@@ -1,5 +1,5 @@
 ---
 esphome:
-  name: $devicename
+  name: $id
   platform: ESP32
   board: esp-wrover-kit

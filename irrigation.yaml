@@ -5,9 +5,9 @@
 # Personal project goals: https://github.com/brianhanifin/Home-Assistant-Config/issues/37
 #
 substitutions:
-  devicename: irrigation
-  upper_devicename: Irrigation Controller
-  <<: !include common/substitutions/sonoff4chpro_gpio.yaml
+  project: Irrigation Controller
+  id: irrigation
+  <<: !include common/substitutions/sonoff4chpror2_gpio.yaml
 
 <<: !include common/esphome/esp8266.yaml
 <<: !include common/wifi.yaml
@@ -163,9 +163,12 @@ binary_sensor:
         - switch.toggle: relay4
 
 switch:
+  - !include common/switches/restart.yaml
+
+  # Relays which trigger solenoids
   - platform: gpio
     id: relay1
-    name: $upper_devicename Zone 1
+    name: $project Zone 1
     pin: $relay1_gpio
     on_turn_on:
       then:
@@ -175,7 +178,7 @@ switch:
           
   - platform: gpio
     id: relay2
-    name: $upper_devicename Zone 2
+    name: $project Zone 2
     pin: $relay2_gpio
     on_turn_on:
       then:
@@ -185,7 +188,7 @@ switch:
           
   - platform: gpio
     id: relay3
-    name: $upper_devicename Zone 3
+    name: $project Zone 3
     pin: $relay3_gpio
     on_turn_on:
       - globals.set:
@@ -194,7 +197,7 @@ switch:
           
   - platform: gpio
     id: relay4
-    name: $upper_devicename Zone 4
+    name: $project Zone 4
     pin: $relay4_gpio
     on_turn_on:
       - globals.set:
@@ -244,3 +247,7 @@ light:
     internal: True
     output: led_wifi
     id: led
+
+sensor:
+  - !include common/sensors/uptime.yaml
+  - !include common/sensors/wifi_signal.yaml

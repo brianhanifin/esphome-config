@@ -1,8 +1,8 @@
 # ESP32 Bluetooth Hub
 #
 substitutions:
-  devicename: bluetooth_hub
-  upper_devicename: BLE Hub
+  project: BLE Hub
+  id: bluetooth_hub
   <<: !include common/substitutions/bluetooth_hub.yaml
 
 <<: !include common/esphome/esp32_wrover.yaml

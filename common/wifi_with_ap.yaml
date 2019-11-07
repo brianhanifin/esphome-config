@@ -5,7 +5,7 @@ wifi:
 
   # Fallback Hotspot (requires "captive_portal:").
   ap:
-    ssid: $devicename
+    ssid: $id
     password: !secret failover_password
 
 captive_portal:

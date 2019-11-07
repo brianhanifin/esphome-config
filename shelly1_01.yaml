@@ -2,8 +2,8 @@
 # Location: Dining Room Light Switch
 #
 substitutions:
-  devicename: shelly1_01
-  upper_devicename: Shelly1 01
+  project: Shelly1 01
+  id: shelly1_01
   
   hass_light: light.dining_room
   <<: !include common/substitutions/shelly1_gpio.yaml
@@ -47,7 +47,7 @@ binary_sensor:
     pin:
       number: $button_gpio
       inverted: True
-    name: $upper_devicename Button
+    name: $project Button
     id: button
     filters:
       - delayed_on: 10ms

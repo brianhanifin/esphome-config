@@ -1,8 +1,8 @@
 # Shelly 2 Power Module
 #
 substitutions:
-  devicename: shelly1_02
-  upper_devicename: Shelly1 02
+  project: Shelly1 02
+  id: shelly1_02
 
   <<: !include common/substitutions/shelly1_gpio.yaml
 
@@ -57,7 +57,7 @@ binary_sensor:
     pin:
       number: $button_gpio
       inverted: True
-    #name: $upper_devicename Button
+    #name: $project Button
     id: button
     filters:
       - delayed_on: 10ms
@@ -84,6 +84,6 @@ switch:
   # Physical relay to turn power on and off.
   - platform: gpio
     id: relay
-    name: $devicename
+    name: $id
     pin: $relay_gpio
     restore_mode: ALWAYS_OFF
