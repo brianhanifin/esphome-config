@@ -7,12 +7,62 @@
 substitutions:
   project: Irrigation Controller
   id: irrigation
+
+  # Duration in seconds
+  duration1: "3600" #Zone #1 (pool filler): 60 minutes
+  duration2: "300"  #Zone #2 (drip system): 5 minutes
+  duration3: "1"    #Zone #3 (unused)
+  duration4: "1"    #Zone #4 (unused)
+  duration_default: "300" #5 minutes
+
   <<: !include common/substitutions/sonoff4chpror2_gpio.yaml
 
-<<: !include common/esphome/esp8266.yaml
+esphome:
+  name: $id
+  platform: ESP8266
+  board: esp01_1m
+
+  on_boot:
+    priority: -100.0
+    then:
+      - light.turn_on:
+          id: led
+          brightness: 50%
+
+      - delay: 15s
+      - if:
+          condition:
+            api.connected:
+          then:
+            - logger.log: "Home Assistant is connected!"
+            - light.turn_on:
+                id: led
+                brightness: 100%
+            - delay: 0.5s
+            - light.turn_off: led
+            - delay: 0.5s
+            - light.turn_on:
+                id: led
+                brightness: 100%
+            - delay: 0.5s
+            - light.turn_off: led
+            - delay: 0.5s
+            - light.turn_on:
+                id: led
+                brightness: 100%
+            - delay: 0.5s
+            - light.turn_off: led
+            - delay: 0.5s
+            - light.turn_on:
+                id: led
+                brightness: 100%
+  on_shutdown:
+    then:
+      - light.turn_off: led
+
 <<: !include common/wifi.yaml
 <<: !include common/ota.yaml
-<<: !include common/logger.yaml
+<<: !include common/logger_debug.yaml
 
 # Enable Home Assistant API
 api:
@@ -32,7 +82,7 @@ api:
         globals.set:
           id: time2
           value: !lambda "return time;"
-          
+
     - service: set_time_3
       variables:
         time: int
@@ -40,7 +90,7 @@ api:
         globals.set:
           id: time3
           value: !lambda "return time;"
-          
+
     - service: set_time_4
       variables:
         time: int
@@ -54,37 +104,53 @@ globals:
   - id: time1
     type: int
     restore_value: no
-    initial_value: '1800'
+    initial_value: $duration_default
   - id: time2
     type: int
     restore_value: no
-    initial_value: '1800'
+    initial_value: $duration_default
   - id: time3
     type: int
     restore_value: no
-    initial_value: '1800'
+    initial_value: $duration_default
   - id: time4
     type: int
     restore_value: no
-    initial_value: '1800'
+    initial_value: $duration_default
 
   # Irrigation time remaining
   - id: remaining_time1
     type: int
-    restore_value: no
-    initial_value: '1800'
+    restore_value: yes
+    #initial_value: "0"
   - id: remaining_time2
     type: int
-    restore_value: no
-    initial_value: '1800'
+    restore_value: yes
+    #initial_value: "0"
   - id: remaining_time3
     type: int
-    restore_value: no
-    initial_value: '1800'
+    restore_value: yes
+    #initial_value: "0"
   - id: remaining_time4
     type: int
     restore_value: no
-    initial_value: '1800'
+
+  - id: remaining_time1_previous
+    type: int
+    restore_value: no
+    initial_value: "0"
+  - id: remaining_time2_previous
+    type: int
+    restore_value: no
+    initial_value: "0"
+  - id: remaining_time3_previous
+    type: int
+    restore_value: no
+    initial_value: "0"
+  - id: remaining_time4_previous
+    type: int
+    restore_value: no
+    initial_value: "0"
 
 binary_sensor:
   - !include common/binary_sensors/status.yaml
@@ -103,9 +169,6 @@ binary_sensor:
       min_length: 50ms
       max_length: 350ms
       then:
-        - globals.set:
-            id: time1
-            value: "900"
         - switch.toggle: relay1
 
   - platform: gpio
@@ -121,11 +184,8 @@ binary_sensor:
       min_length: 50ms
       max_length: 350ms
       then:
-        - globals.set:
-            id: time2
-            value: "900"
         - switch.toggle: relay2
-        
+
   - platform: gpio
     id: key3
     pin:
@@ -139,11 +199,8 @@ binary_sensor:
       min_length: 100ms
       max_length: 500ms
       then:
-        - globals.set:
-            id: time3
-            value: "900"
         - switch.toggle: relay3
-        
+
   - platform: gpio
     id: key4
     pin:
@@ -157,9 +214,6 @@ binary_sensor:
       min_length: 100ms
       max_length: 500ms
       then:
-        - globals.set:
-            id: time4
-            value: "600"
         - switch.toggle: relay4
 
 switch:
@@ -173,8 +227,18 @@ switch:
     on_turn_on:
       then:
       - globals.set:
+          id: time1
+          value: $duration1
+      - globals.set:
           id: remaining_time1
           value: !lambda "return id(time1);"
+      - sensor.template.publish:
+          id: ${id}_zone1_remaining
+          state: !lambda 'return id(time1)/60;'
+    on_turn_off:
+      - sensor.template.publish:
+          id: ${id}_zone1_remaining
+          state: !lambda 'return 0;'
           
   - platform: gpio
     id: relay2
@@ -183,8 +247,18 @@ switch:
     on_turn_on:
       then:
       - globals.set:
+          id: time2
+          value: $duration2
+      - globals.set:
           id: remaining_time2
           value: !lambda "return id(time2);"
+      - sensor.template.publish:
+          id: ${id}_zone2_remaining
+          state: !lambda 'return id(time2)/60;'
+    on_turn_off:
+      - sensor.template.publish:
+          id: ${id}_zone2_remaining
+          state: !lambda 'return 0;'
           
   - platform: gpio
     id: relay3
@@ -192,8 +266,18 @@ switch:
     pin: $relay3_gpio
     on_turn_on:
       - globals.set:
+          id: time3
+          value: $duration3
+      - globals.set:
           id: remaining_time3
           value: !lambda "return id(time3);"
+      - sensor.template.publish:
+          id: ${id}_zone3_remaining
+          state: !lambda 'return id(time3)/60;'
+    on_turn_off:
+      - sensor.template.publish:
+          id: ${id}_zone3_remaining
+          state: !lambda 'return 0;'
           
   - platform: gpio
     id: relay4
@@ -201,46 +285,24 @@ switch:
     pin: $relay4_gpio
     on_turn_on:
       - globals.set:
+          id: time4
+          value: $duration4
+      - globals.set:
           id: remaining_time4
           value: !lambda "return id(time4);"
-
-interval:
-  - interval: 5s
-    then:
-      - lambda: |-
-          if(id(relay1).state) {
-            id(remaining_time1)=id(remaining_time1)-5;
-            if(id(remaining_time1)<=0){
-              id(relay1).turn_off();
-            }
-          }
-          
-          if(id(relay2).state) {
-            id(remaining_time2)=id(remaining_time2)-5;
-            if(id(remaining_time2)<=0){
-              id(relay2).turn_off();
-            }
-          }
-          
-          if(id(relay3).state) {
-            id(remaining_time3)=id(remaining_time3)-5;
-            if(id(remaining_time3)<=0){
-              id(relay3).turn_off();
-            }
-          }
-          
-          if(id(relay4).state) {
-            id(remaining_time4)=id(remaining_time4)-5;
-            if(id(remaining_time4)<=0){
-              id(relay4).turn_off();
-            }
-          }
+      - sensor.template.publish:
+          id: ${id}_zone4_remaining
+          state: !lambda 'return id(time4)/60;'
+    on_turn_off:
+      - sensor.template.publish:
+          id: ${id}_zone4_remaining
+          state: !lambda 'return 0;'
 
 output:
   - platform: esp8266_pwm
-    id: led_wifi
     pin: $led_wifi_gpio
     inverted: True
+    id: led_wifi
 
 light:
   - platform: monochromatic
@@ -251,3 +313,121 @@ light:
 sensor:
   - !include common/sensors/uptime.yaml
   - !include common/sensors/wifi_signal.yaml
+
+  # Countdown sensors.
+  - platform: template
+    name: $project Zone 1 Time Remaining
+    id: ${id}_zone1_remaining
+    lambda: "return 0;"
+    accuracy_decimals: 0
+    unit_of_measurement: minutes
+    icon: mdi:timer
+    filters:
+      - throttle: 15s
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(remaining_time1) == 0;'
+            then:
+              - switch.turn_off: relay1
+
+  - platform: template
+    name: $project Zone 2 Time Remaining
+    id: ${id}_zone2_remaining
+    lambda: "return 0;"
+    accuracy_decimals: 0
+    unit_of_measurement: minutes
+    icon: mdi:timer
+    filters:
+      - throttle: 15s
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(remaining_time2) == 0;'
+            then:
+              - switch.turn_off: relay2
+
+  - platform: template
+    name: $project Zone 3 Time Remaining
+    id: ${id}_zone3_remaining
+    lambda: "return 0;"
+    accuracy_decimals: 0
+    unit_of_measurement: minutes
+    icon: mdi:timer
+    filters:
+      - throttle: 15s
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(remaining_time3) == 0;'
+            then:
+              - switch.turn_off: relay3
+
+  - platform: template
+    name: $project Zone 4 Time Remaining
+    id: ${id}_zone4_remaining
+    lambda: "return 0;"
+    accuracy_decimals: 0
+    unit_of_measurement: minutes
+    icon: mdi:timer
+    filters:
+      - throttle: 15s
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(remaining_time4) == 0;'
+            then:
+              - switch.turn_off: relay4
+
+interval:
+  - interval: 5s
+    then:
+      - lambda: |-
+          id(remaining_time1_previous) = id(remaining_time1);
+          if(id(relay1).state) {
+            id(remaining_time1)=id(remaining_time1)-5;
+            if(id(remaining_time1)<=0){
+              id(relay1).turn_off();
+              id(remaining_time1) = 0;
+            }
+          }
+          if (id(remaining_time1_previous) != id(remaining_time1)) {
+            id(${id}_zone1_remaining).publish_state(id(remaining_time1)/60);
+          }
+
+          id(remaining_time2_previous) = id(remaining_time2);
+          if(id(relay2).state) {
+            id(remaining_time2)=id(remaining_time2)-5;
+            if(id(remaining_time2)<=0){
+              id(relay2).turn_off();
+            }
+          }
+          if (id(remaining_time2_previous) != id(remaining_time2)) {
+            id(${id}_zone2_remaining).publish_state(id(remaining_time2)/60);
+          }
+
+          id(remaining_time3_previous) = id(remaining_time3);
+          if(id(relay3).state) {
+            id(remaining_time3)=id(remaining_time3)-5;
+            if(id(remaining_time3)<=0){
+              id(relay3).turn_off();
+            }
+          }
+          if (id(remaining_time3_previous) != id(remaining_time3)) {
+            id(${id}_zone3_remaining).publish_state(id(remaining_time3)/60);
+          }
+
+          id(remaining_time4_previous) = id(remaining_time4);
+          if(id(relay4).state) {
+            id(remaining_time4)=id(remaining_time4)-5;
+            if(id(remaining_time4)<=0){
+              id(relay4).turn_off();
+            }
+          }
+          if (id(remaining_time4_previous) != id(remaining_time4)) {
+            id(${id}_zone4_remaining).publish_state(id(remaining_time4)/60);
+          }
