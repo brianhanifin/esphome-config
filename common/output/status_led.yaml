@@ -1,6 +1,5 @@
 ---
-output:
-  - platform: esp8266_pwm
-    pin: $led_status_gpio
-    inverted: True
-    id: _status_led
+platform: esp8266_pwm
+pin: $led_status_gpio
+inverted: True
+id: _status_led
