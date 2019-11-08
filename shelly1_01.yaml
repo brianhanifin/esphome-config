@@ -6,7 +6,7 @@ substitutions:
   id: shelly1_01
   
   hass_light: light.dining_room
-  <<: !include common/substitutions/shelly1_gpio.yaml
+  <<: !include common/substitutions/gpio/shelly1.yaml
 
 <<: !include common/esphome/esp8266.yaml
 <<: !include common/wifi.yaml

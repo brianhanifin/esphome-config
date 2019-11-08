@@ -1,0 +1,15 @@
+---
+button1_gpio: GPIO0
+button2_gpio: GPIO9
+button3_gpio: GPIO10
+button4_gpio: GPIO14
+
+led_status_gpio: GPIO13
+
+relay1_gpio: GPIO12
+relay2_gpio: GPIO5
+relay3_gpio: GPIO4
+relay4_gpio: GPIO15
+
+rx_gpio: GPIO3
+tx_gpio: GPIO1

@@ -4,7 +4,7 @@ substitutions:
   project: Shelly1 02
   id: shelly1_02
 
-  <<: !include common/substitutions/shelly1_gpio.yaml
+  <<: !include common/substitutions/gpio/shelly1.yaml
 
 <<: !include common/esphome/esp8266.yaml
 <<: !include common/wifi.yaml
