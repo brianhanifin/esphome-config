@@ -11,8 +11,8 @@ substitutions:
   # Duration in seconds
   duration1: "3600" #Zone #1 (pool filler): 60 minutes
   duration2: "300"  #Zone #2 (drip system): 5 minutes
-  duration3: "1"    #Zone #3 (unused)
-  duration4: "1"    #Zone #4 (unused)
+  duration3: "0"    #Zone #3 (disabled)
+  duration4: "0"    #Zone #4 (disabled)
   duration_default: "300" #5 minutes
 
   <<: !include common/substitutions/gpio/sonoff4chpror2.yaml
@@ -27,9 +27,6 @@ esphome:
 <<: !include common/wifi.yaml
 <<: !include common/ota.yaml
 <<: !include common/logger_debug.yaml
-
-<<: !include common/output/status_led.yaml
-<<: !include common/light/status_led.yaml
 
 # Enable Home Assistant API
 api:
@@ -102,6 +99,7 @@ globals:
     type: int
     restore_value: no
 
+  # Store previous values to verify change.
   - id: remaining_time1_previous
     type: int
     restore_value: no
@@ -118,6 +116,13 @@ globals:
     type: int
     restore_value: no
     initial_value: "0"
+
+# Common housekeeping components.
+output:
+  <<: !include common/output/status_led.yaml
+
+light:
+  <<: !include common/light/status_led.yaml
 
 binary_sensor:
   - !include common/binary_sensors/status.yaml
@@ -136,7 +141,7 @@ binary_sensor:
       min_length: 50ms
       max_length: 350ms
       then:
-        - switch.toggle: relay1
+        - switch.toggle: zone1
 
   - platform: gpio
     id: key2
@@ -151,7 +156,7 @@ binary_sensor:
       min_length: 50ms
       max_length: 350ms
       then:
-        - switch.toggle: relay2
+        - switch.toggle: zone2
 
   - platform: gpio
     id: key3
@@ -166,7 +171,7 @@ binary_sensor:
       min_length: 100ms
       max_length: 500ms
       then:
-        - switch.toggle: relay3
+        - switch.toggle: zone3
 
   - platform: gpio
     id: key4
@@ -181,15 +186,75 @@ binary_sensor:
       min_length: 100ms
       max_length: 500ms
       then:
-        - switch.toggle: relay4
+        - switch.toggle: zone4
 
 switch:
   - !include common/switches/restart.yaml
 
+  # Virtual Zone Switches which 
+  - platform: template
+    name: $project Zone 1
+    optimistic: true
+    id: zone1
+    turn_on_action:
+      # Turn on if not disabled.
+      if:
+        condition:
+          lambda: return $duration1 > 0;
+        then:
+        - switch.turn_on: relay1
+    turn_off_action:
+    - switch.turn_off: relay1
+    lambda: return id(relay1).state;
+
+  - platform: template
+    name: $project Zone 2
+    optimistic: true
+    id: zone2
+    turn_on_action:
+      # Turn on if not disabled.
+      if:
+        condition:
+          lambda: return $duration2 > 0;
+        then:
+        - switch.turn_on: relay2
+    turn_off_action:
+    - switch.turn_off: relay2
+    lambda: return id(relay2).state;
+
+  - platform: template
+    name: $project Zone 3
+    optimistic: true
+    id: zone3
+    turn_on_action:
+      # Turn on if not disabled.
+      if:
+        condition:
+          lambda: return $duration3 > 0;
+        then:
+        - switch.turn_on: relay3
+    turn_off_action:
+    - switch.turn_off: relay3
+    lambda: return id(relay3).state;
+
+  - platform: template
+    name: $project Zone 4
+    optimistic: true
+    id: zone4
+    turn_on_action:
+      # Turn on if not disabled.
+      if:
+        condition:
+          lambda: return $duration4 > 0;
+        then:
+        - switch.turn_on: relay4
+    turn_off_action:
+    - switch.turn_off: relay4
+    lambda: return id(relay4).state;
+
   # Relays which trigger solenoids
   - platform: gpio
     id: relay1
-    name: $project Zone 1
     pin: $relay1_gpio
     on_turn_on:
       then:
@@ -206,10 +271,9 @@ switch:
       - sensor.template.publish:
           id: ${id}_zone1_remaining
           state: !lambda 'return 0;'
-          
+
   - platform: gpio
     id: relay2
-    name: $project Zone 2
     pin: $relay2_gpio
     on_turn_on:
       then:
@@ -226,10 +290,9 @@ switch:
       - sensor.template.publish:
           id: ${id}_zone2_remaining
           state: !lambda 'return 0;'
-          
+
   - platform: gpio
     id: relay3
-    name: $project Zone 3
     pin: $relay3_gpio
     on_turn_on:
       - globals.set:
@@ -245,10 +308,9 @@ switch:
       - sensor.template.publish:
           id: ${id}_zone3_remaining
           state: !lambda 'return 0;'
-          
+
   - platform: gpio
     id: relay4
-    name: $project Zone 4
     pin: $relay4_gpio
     on_turn_on:
       - globals.set:
