@@ -5,3 +5,7 @@
 secrets.yaml
 .DS_Store
 ._*
+
+# Specific folders to include.
+!common
+!common/**

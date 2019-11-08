@@ -15,54 +15,21 @@ substitutions:
   duration4: "1"    #Zone #4 (unused)
   duration_default: "300" #5 minutes
 
-  <<: !include common/substitutions/sonoff4chpror2_gpio.yaml
+  <<: !include common/substitutions/gpio/sonoff4chpror2.yaml
 
 esphome:
   name: $id
   platform: ESP8266
   board: esp01_1m
 
-  on_boot:
-    priority: -100.0
-    then:
-      - light.turn_on:
-          id: led
-          brightness: 50%
-
-      - delay: 15s
-      - if:
-          condition:
-            api.connected:
-          then:
-            - logger.log: "Home Assistant is connected!"
-            - light.turn_on:
-                id: led
-                brightness: 100%
-            - delay: 0.5s
-            - light.turn_off: led
-            - delay: 0.5s
-            - light.turn_on:
-                id: led
-                brightness: 100%
-            - delay: 0.5s
-            - light.turn_off: led
-            - delay: 0.5s
-            - light.turn_on:
-                id: led
-                brightness: 100%
-            - delay: 0.5s
-            - light.turn_off: led
-            - delay: 0.5s
-            - light.turn_on:
-                id: led
-                brightness: 100%
-  on_shutdown:
-    then:
-      - light.turn_off: led
+  <<: !include common/system/status_led_api.yaml
 
 <<: !include common/wifi.yaml
 <<: !include common/ota.yaml
 <<: !include common/logger_debug.yaml
+
+<<: !include common/output/status_led.yaml
+<<: !include common/light/status_led.yaml
 
 # Enable Home Assistant API
 api:
@@ -297,18 +264,6 @@ switch:
       - sensor.template.publish:
           id: ${id}_zone4_remaining
           state: !lambda 'return 0;'
-
-output:
-  - platform: esp8266_pwm
-    pin: $led_wifi_gpio
-    inverted: True
-    id: led_wifi
-
-light:
-  - platform: monochromatic
-    internal: True
-    output: led_wifi
-    id: led
 
 sensor:
   - !include common/sensors/uptime.yaml

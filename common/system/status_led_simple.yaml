@@ -1,0 +1,13 @@
+---
+on_boot:
+  priority: -100.0
+  then:
+    # Set light to half brightness when first ready.
+    - light.turn_on:
+        id: status_led
+        brightness: 100%
+
+# Turn off the LED when the device is shutting down (like for a firmware update).
+on_shutdown:
+  then:
+    - light.turn_off: status_led

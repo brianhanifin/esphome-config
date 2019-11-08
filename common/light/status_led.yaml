@@ -1,0 +1,6 @@
+---
+light:
+  - platform: monochromatic
+    internal: True
+    output: _status_led
+    id: status_led
