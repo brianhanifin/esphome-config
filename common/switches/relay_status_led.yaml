@@ -1,0 +1,16 @@
+---
+platform: template
+name: $project
+optimistic: no
+lambda: |-
+  if (id(relay).state) {
+    return true;
+  } else {
+    return false;
+  }
+turn_on_action:
+  - switch.turn_on: relay
+  - light.turn_off: status_led
+turn_off_action:
+  - switch.turn_off: relay
+  - light.turn_on: status_led

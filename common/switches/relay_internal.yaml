@@ -1,0 +1,5 @@
+---
+platform: gpio
+id: relay
+pin: $relay_gpio
+restore_mode: ALWAYS_OFF

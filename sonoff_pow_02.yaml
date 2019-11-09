@@ -1,93 +1,10 @@
-# Sonoff Basic Power Module
+---
+# Sonoff Power Module
 #
 substitutions:
-  devicename: sonoff_pow_02
-  upper_devicename: Sonoff POW 02
+  project: Sonoff POW 02
+  id: sonoff_pow_02
 
-esphome:
-  name: ${devicename}
-  platform: ESP8266
-  board: esp01_1m
-  
-  # Turn on the LED on boot
-  on_boot:
-    priority: -10
-    then:
-      - light.turn_on: ${devicename}_green_led
+  <<: !include common/substitutions/gpio/sonoffpow.yaml
 
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_pass
-
-# Disable logging over USB
-logger:
-  baud_rate: 0
-
-# Configuration for power monitor
-uart:
-  rx_pin: RX
-  baud_rate: 4800
-
-# Enable Home Assistant API
-api:
-
-ota:
-  safe_mode: True
-
-binary_sensor:
-  - platform: gpio
-    pin:
-      number: GPIO0
-      mode: INPUT_PULLUP
-      inverted: True
-    name:  ${upper_devicename} Button
-    id:  ${devicename}_button
-    on_press:
-      - switch.toggle: relay
-
-  # - platform: status
-  #   name:  ${upper_devicename} Status
-  #   id:  ${devicename}_status
-
-output:
-  # Register the green LED as a dimmable output ....
-  - platform: esp8266_pwm
-    id: green_led
-    pin:
-      number: GPIO13
-      inverted: True
-
-light:
-  # ... and then make a light out of it.
-  - platform: monochromatic
-    name:  ${upper_devicename} Green LED
-    id:  ${devicename}_green_led
-    output: green_led
-    internal: true # hide from Home Assistant
-
-sensor:
-  # - platform: wifi_signal
-  #   name:  ${devicename}__wifi_signal
-  #   update_interval: 30s
-
-  # - platform: uptime
-  #   name:  ${devicename}_uptime
-    
-  - platform: cse7766
-    current:
-      name:  ${upper_devicename} Current
-    voltage:
-      name:  ${upper_devicename} Voltage
-    power:
-      name:  ${upper_devicename} Power
-
-switch:
-  - platform: gpio
-    name:  ${devicename}
-    id: relay
-    pin: GPIO12
-    restore_mode: ALWAYS_OFF
-
-# text_sensor:
-#   - platform: version
-#     name:  ${devicename}_esphome_version
+<<: !include common/templates/sonoff_pow.yaml

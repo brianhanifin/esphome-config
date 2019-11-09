@@ -1,3 +1,4 @@
+---
 # Forked from: https://github.com/bruxy70/Irrigation-with-display
 # MIT License: https://github.com/brianhanifin/Irrigation-with-display/blob/master/LICENSE
 # 
@@ -22,7 +23,7 @@ esphome:
   platform: ESP8266
   board: esp01_1m
 
-  <<: !include common/system/status_led_api.yaml
+  <<: !include common/esphome/led/status_with_api.yaml
 
 <<: !include common/wifi.yaml
 <<: !include common/ota.yaml

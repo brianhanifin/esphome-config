@@ -1,11 +1,13 @@
+---
 # Shelly 1 Power Module
 # Location: Dining Room Light Switch
 #
 substitutions:
   project: Shelly1 01
   id: shelly1_01
-  
+
   hass_light: light.dining_room
+
   <<: !include common/substitutions/gpio/shelly1.yaml
 
 <<: !include common/esphome/esp8266.yaml
@@ -58,8 +60,4 @@ binary_sensor:
       - script.execute: hass_light_toggle
 
 switch:
-  # Relay is for internal use only. Do not expose to Home Assistant.
-  - platform: gpio
-    id: relay
-    pin: $relay_gpio
-    restore_mode: ALWAYS_ON
+  <<: !include common/switches/relay_always_on.yaml

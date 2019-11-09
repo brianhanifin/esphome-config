@@ -1,4 +1,6 @@
+---
 # Shelly 2 Power Module
+# Location: Upstairs Bathroom
 #
 substitutions:
   project: Shelly1 02
@@ -81,9 +83,4 @@ sensor:
           - switch.turn_off: relay
 
 switch:
-  # Physical relay to turn power on and off.
-  - platform: gpio
-    id: relay
-    name: $id
-    pin: $relay_gpio
-    restore_mode: ALWAYS_OFF
+  <<: !include common/switches/relay_always_on.yaml

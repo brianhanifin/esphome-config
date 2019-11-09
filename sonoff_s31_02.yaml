@@ -1,100 +1,10 @@
-# Sonoff S31 Power Monitoring Plug
+---
+# Sonoff S31 Power Monitoring Plug, Always On
 #
 substitutions:
-  devicename: sonoff_s31_02
-  upper_devicename: Sonoff S31 02
+  project: Sonoff S31 02
+  id: sonoff_s31_02
 
-esphome:
-  name: ${devicename}
-  platform: ESP8266
-  board: esp01_1m
-  
-  # Turn on the LED on boot
-  on_boot:
-    priority: -10
-    then:
-      - light.turn_on: ${devicename}_green_led
+  <<: !include common/substitutions/gpio/sonoffs31.yaml
 
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_pass
-
-# Disable logging over USB
-logger:
-  baud_rate: 0
-
-# Configuration for power monitor
-uart:
-  rx_pin: RX
-  baud_rate: 4800
-
-# Enable Home Assistant API
-api:
-
-ota:
-  safe_mode: True
-
-
-# binary_sensor:
-#   - platform: status
-#     name: ${upper_devicename} Status
-#     id: ${devicename}_status
-  
-  # Re-enable the following lines to re-enable the physical power button on the plug.
-  # - platform: gpio
-  #   pin:
-  #     number: GPIO0
-  #     mode: INPUT_PULLUP
-  #     inverted: True
-  #   name: ${upper_devicename} Button
-  #   id: ${devicename}_button
-  #   on_press:
-  #     - switch.toggle: relay
-  #   filters:
-  #     - delayed_on: 10ms
-
-light:
-  # Expose the "light" to Home Assistant
-  - platform: monochromatic
-    #name: ${upper_devicename} Green LED
-    id: ${devicename}_green_led
-    output: green_led
-    internal: true # hide from Home Assistant
-
-output:
-  # Register the green LED as a dimmable output
-  - platform: esp8266_pwm
-    id: green_led
-    pin:
-      number: GPIO13
-      inverted: True
-    
-sensor:
-  # - platform: wifi_signal
-  #   name: ${devicename}_wifi_signal
-  #   update_interval: 30s
-
-  # - platform: uptime
-  #   name: ${devicename}_uptime
-    
-  - platform: cse7766
-    current:
-      name: ${upper_devicename} Current
-    voltage:
-      name: ${upper_devicename} Voltage
-    power:
-      name: ${upper_devicename} Power
-
-switch:
-  - platform: gpio
-    name: ${upper_devicename}
-    id: relay
-    internal: true # hide from Home Assistant
-    pin: GPIO12
-    
-    # Remark out the following line if you do not wish the switch to be turned upon boot.
-    restore_mode: ALWAYS_ON
-
-# text_sensor:
-#   - platform: version
-#     name: ${devicename}_esphome_version
+<<: !include common/templates/sonoff_s31_always_on.yaml

@@ -1,0 +1,8 @@
+---
+logger:
+  baud_rate: 0
+
+# Configuration for power monitor
+uart:
+  rx_pin: RX
+  baud_rate: 4800
