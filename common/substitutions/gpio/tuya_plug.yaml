@@ -1,4 +1,5 @@
 ---
+# These brands share the same pins: Luntak, ZooZee.
 button_gpio: GPIO13
 led_status_gpio: GPIO2
 relay_gpio: GPIO15

@@ -7,4 +7,4 @@ substitutions:
 
   <<: !include common/substitutions/gpio/tuya_plug.yaml
 
-<<: !include common/templates/tuya_plug.yaml
+<<: !include common/templates/plug.yaml

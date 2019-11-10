@@ -5,6 +5,6 @@ substitutions:
   project: Sonoff S31 01
   id: sonoff_s31_01
 
-  <<: !include common/substitutions/gpio/sonoffs31.yaml
+  <<: !include common/substitutions/gpio/sonoff.yaml
 
-<<: !include common/templates/sonoff_s31_always_on.yaml
+<<: !include common/templates/sonoff_power_monitor_always_on.yaml

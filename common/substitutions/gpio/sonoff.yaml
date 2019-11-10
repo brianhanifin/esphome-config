@@ -2,6 +2,3 @@
 button_gpio: GPIO0
 led_status_gpio: GPIO13
 relay_gpio: GPIO12
-
-# rx_gpio: GPIO3
-# tx_gpio: GPIO1

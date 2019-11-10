@@ -13,6 +13,12 @@ I started with the [ESP32 Bluetooth Low Energy Tracker Hub][esphome-ble-hub] exa
 ### dog_water.yaml
 A **FAILED** attempt at making a dog water bowl sensor with an ESP8266 board. By inserting two insulated wires (cut at the end) into the bowl I hoped it would become a "switch" that would turn on and off when submerged in the water or dry. It did not work, someday I will try to find a more reliable way to sense water.
 
+### Irrigation Controller: irrigation.yaml
+#### [Sonoff 4ch Pro R2][esphome-sonoff4pro]
+Our battery and cloud powered Melnor Raincloud/Aquatimer has been flaky off and on for years. Now even new batteries aren't resolving the problem. Also, there appears to be possible battery acid inside the battery compartment. I suspect the wireless radio may be dead despite being able to manually toggle the valves.
+
+The ESPHome projects I have done around our house have been extremely reliable and useful additions to our smart home. Recently, the ESPHome site featured a user's project that turned a Sonoff 4 channel Pro unit into an irrigation controller, which inspired me. That project features a nifty touch screen display. But I want to start simple. We can start with a dumb relay controller, with the brains being controlled from Home Assistant.
+
 ### Standard plugs: plug01.yaml - plug03.yaml
 #### ZooZee brand Tuya plugs
 These are simple round wall plug were flashed with over the air with tasmota-convert, then ESPHome was uploaded via the Tasmota UI. The ESPHome code attempts to recreate their original functionality.
@@ -20,7 +26,7 @@ These are simple round wall plug were flashed with over the air with tasmota-con
 ### Hot Water Pump: plug05.yaml
 This plug controls the whole house hot water recirculation pump. When we turn this on we don't want it to keep running forever. So I set a timeout that turns the pump off after 10 minutes. This timeout is a backup to the Home Assistant automation that automatically turns it off after 5 minutes.
 
-### Standard plugs: plug06.yaml - plug08.yaml
+### Standard plugs: plug04.yaml - plug07.yaml
 #### Luntak brand Tuya plugs
 These are simple round wall plugs were flashed with over the air with tasmota-convert, then ESPHome was uploaded via the Tasmota UI. The ESPHome code attempts to recreate their original functionality.
 
@@ -38,7 +44,7 @@ The ESPHome code gets the humidity from Home Assistant and handles all automatio
 The switch will also fail gracefully when Home Assistant is not available to act as a dumb toggle switch.
 
 ### Standard plugs: sonoff_basic_01.yaml, sonoff_basic_02.yaml
-These are Sonoff Basics, with plugs on either side. One is used to switch on a floor fan, and the other is being reserved possibly to control a bathroom vent fan.
+These are [Sonoff Basics][esphome-sonoff-basic], with plugs on either side. One is used to switch on a floor fan, and the other is being reserved possibly to control a bathroom vent fan.
 
 ### Power monitoring ONLY plugs: sonoff_s31_01.yaml, sonoff_s31_02.yaml
 These are Sonoff S31 plugs are set to power on a boot, their physical "power" push buttons are disabled, and the virtual button hidden from Home Assistant. They are being used to monitor the power usage of a clothes washing machine and my wife's Glowforge laser cutter. With this data, I can create automations to alert us when the wash cycle or the laser cycle is complete.
@@ -49,7 +55,6 @@ These are Sonoff POWs and Sonoff S31s. The code attempts to recreate their funct
 
 ## Questions?
 Ask on the [ESPHome #general channel on Discord][discord]. Use `#BrianHanifin` to tag me.
-
 
 
 [commits-shield]: https://img.shields.io/github/commit-activity/m/brianhanifin/esphome-config.svg
@@ -65,4 +70,5 @@ Ask on the [ESPHome #general channel on Discord][discord]. Use `#BrianHanifin` t
 
 
 [esphome-ble-hub]:https://esphome.io/components/esp32_ble_tracker.html
+[esphome-sonoff4pro]:https://esphome.io/devices/sonoff_4ch.html
 [esphome-sonoff-basic]:https://esphome.io/devices/sonoff_basic.html

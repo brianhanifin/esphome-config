@@ -23,7 +23,7 @@ esphome:
   platform: ESP8266
   board: esp01_1m
 
-  <<: !include common/esphome/led/status_with_api.yaml
+  <<: !include common/esphome/leds/status_with_api.yaml
 
 <<: !include common/wifi.yaml
 <<: !include common/ota.yaml
@@ -120,10 +120,10 @@ globals:
 
 # Common housekeeping components.
 output:
-  <<: !include common/output/status_led.yaml
+  <<: !include common/outputs/status_led.yaml
 
 light:
-  <<: !include common/light/status_led.yaml
+  <<: !include common/lights/status_led.yaml
 
 binary_sensor:
   - !include common/binary_sensors/status.yaml
