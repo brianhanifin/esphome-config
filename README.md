@@ -7,21 +7,18 @@ Configuration files for my ESP8266 / ESP32 plugs and boards for use with Home As
 
 ## Common configuration files
 ### /common/
-In the common folder you will find repetitive configuration blocks representing status light, wifi, api, and logging. The Sonoff and Tuya Plugs share common code in the /common/templates/ folder.
+In the common folder you will find repetitive configuration blocks representing status light, wifi, api, and logging. The Sonoff and Tuya Plugs share common code in the /common/templates/ folder. @AlexMekkering thank you for [showing us how powerful this is][config-includes].
 
 ## Devices
 
 ### bluetooth_hub.yaml
 I started with the [ESP32 Bluetooth Low Energy Tracker Hub][esphome-ble-hub] example on esphome.io, and added Xiaomi temperature plant sensors.
 
-### dog_water.yaml
-A **FAILED** attempt at making a dog water bowl sensor with an ESP8266 board. By inserting two insulated wires (cut at the end) into the bowl I hoped it would become a "switch" that would turn on and off when submerged in the water or dry. It did not work, someday I will try to find a more reliable way to sense water.
-
 ### Irrigation Controller: irrigation.yaml
 #### [Sonoff 4ch Pro R2][esphome-sonoff4pro]
 Our battery and cloud powered Melnor Raincloud/Aquatimer has been flaky off and on for years. Now even new batteries aren't resolving the problem. Also, there appears to be possible battery acid inside the battery compartment. I suspect the wireless radio may be dead despite being able to manually toggle the valves.
 
-The ESPHome projects I have done around our house have been extremely reliable and useful additions to our smart home. Recently, the ESPHome site featured a user's project that turned a Sonoff 4 channel Pro unit into an irrigation controller, which inspired me. That project features a nifty touch screen display. But I want to start simple. We can start with a dumb relay controller, with the brains being controlled from Home Assistant.
+The ESPHome projects I have done around our house have been extremely reliable and useful additions to our smart home. Recently, the [ESPHome Examples][esphome-examples] site featured @bruxy70's [Irrigation with display][irrigation-with-display] project that turned a Sonoff 4 channel Pro unit into an irrigation controller, which inspired me. That project features a nifty touch screen display. But since the controller will be far out of the way on the side yard, the user interface can be handled by Home Assistant.
 
 ### Standard plugs: plug01.yaml - plug03.yaml
 #### ZooZee brand Tuya plugs
@@ -56,7 +53,6 @@ These are Sonoff S31 plugs are set to power on a boot, their physical "power" pu
 ### Power monitoring plugs: sonoff_pow_01.yaml, sonoff_pow_02.yaml, sonoff_s31_03.yaml - sonoff_s31_06.yaml
 These are Sonoff POWs and Sonoff S31s. The code attempts to recreate their functionality.
 
-
 ## Questions?
 Ask on the [ESPHome #general channel on Discord][discord]. Use `#BrianHanifin` to tag me.
 
@@ -65,14 +61,14 @@ Ask on the [ESPHome #general channel on Discord][discord]. Use `#BrianHanifin` t
 [commits]: https://github.com/brianhanifin/esphome-config/commits/master
 [github-last-commit]: https://img.shields.io/github/last-commit/BrianHanifin/esphome-config.svg?style=plasticr
 [github-master]: https://github.com/BrianHanifin/esphome-config/commits/master
-
 [discord-shield]: https://img.shields.io/discord/429907082951524364.svg
 [discord]: https://discord.gg/A7SaaSC
-
 [forum-shield]: https://img.shields.io/badge/home_assistant-forum-brightgreen.svg
 [forum]: https://community.home-assistant.io/u/brianhanifin/summary
-
 
 [esphome-ble-hub]:https://esphome.io/components/esp32_ble_tracker.html
 [esphome-sonoff4pro]:https://esphome.io/devices/sonoff_4ch.html
 [esphome-sonoff-basic]:https://esphome.io/devices/sonoff_basic.html
+[esphome-examples]:https://esphome.io/guides/diy.html
+[config-includes]:https://github.com/AlexMekkering/esphome-config
+[irrigation-with-display]:https://github.com/bruxy70/Irrigation-with-display
