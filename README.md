@@ -3,7 +3,11 @@
 | [![last commit time][github-last-commit]][github-master] [![GitHub Activity][commits-shield]][commits] | [![Discord][discord-shield]][discord] [![Home Assistant Forum][forum-shield]][forum]  | 
 
 # My ESPHome Devices
-Configuration files for my ESP8266 / ESP32 plugs and boards for use with Home Assistant.
+Configuration files for my ESP8266 / ESP32 plugs and boards for use with Home Assistant. I have made heavy use of `!include` files to limit code duplication. This allows me to focus on the advanced code I create for projects like my Bathroom Fan Controller and my Irrigation Controller.
+
+## Common configuration files
+### /common/
+In the common folder you will find repetitive configuration blocks representing status light, wifi, api, and logging. The Sonoff and Tuya Plugs share common code in the /common/templates/ folder.
 
 ## Devices
 

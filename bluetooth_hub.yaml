@@ -7,10 +7,7 @@ substitutions:
   <<: !include common/substitutions/bluetooth_hub.yaml
 
 <<: !include common/esphome/esp32_wrover.yaml
-<<: !include common/wifi.yaml
-<<: !include common/ota.yaml
-<<: !include common/logger.yaml
-<<: !include common/api.yaml
+<<: !include common/common.yaml
 
 esp32_ble_tracker:
 

@@ -9,10 +9,7 @@ substitutions:
   <<: !include common/substitutions/gpio/shelly1.yaml
 
 <<: !include common/esphome/esp8266.yaml
-<<: !include common/wifi.yaml
-<<: !include common/api.yaml
-<<: !include common/ota.yaml
-<<: !include common/logger.yaml
+<<: !include common/common.yaml
 
 script:
   - id: relay_off_after_delay
