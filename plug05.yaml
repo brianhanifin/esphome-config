@@ -4,7 +4,30 @@
 substitutions:
   project: Plug05
   id: plug05
+  off_delay: 10min
 
   <<: !include common/substitutions/gpio/tuya_plug.yaml
 
-<<: !include common/templates/plug.yaml
+esphome:
+  name: ${id}
+  platform: ESP8266
+  board: esp01_1m
+  
+  <<: !include common/esphome/leds/status.yaml
+
+<<: !include common/wifi.yaml
+<<: !include common/ota.yaml
+<<: !include common/api.yaml
+<<: !include common/logger_debug.yaml
+
+binary_sensor:
+  - !include common/binary_sensors/power_button.yaml
+
+light:
+  - !include common/lights/status_led.yaml
+
+output:
+  - !include common/outputs/status_led.yaml
+
+switch:
+  - !include common/switches/relay_status_led_off_delay.yaml

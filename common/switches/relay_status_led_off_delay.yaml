@@ -1,0 +1,12 @@
+---
+platform: gpio
+id: relay
+name: $project
+pin: GPIO15
+on_turn_on:
+  - light.turn_off: status_led
+##### Make sure this relay does not stay on all day. #####
+  - delay: $off_delay
+  - switch.turn_off: relay
+on_turn_off:
+  - light.turn_on: status_led
