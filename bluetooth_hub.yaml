@@ -7,9 +7,19 @@ substitutions:
   <<: !include common/substitutions/bluetooth_hub.yaml
 
 <<: !include common/esphome/esp32_wrover.yaml
-<<: !include common/common.yaml
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address: 10.0.20.13
+<<: !include common/ota.yaml
+<<: !include common/logger.yaml
+<<: !include common/api.yaml
 
 esp32_ble_tracker:
+  # scan_parameters:
+  #   interval: 160 ms
+  #   window: 160 ms
 
 sensor:
   # - platform: ble_rssi

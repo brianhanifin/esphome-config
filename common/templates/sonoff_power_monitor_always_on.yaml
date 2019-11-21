@@ -22,4 +22,4 @@ sensor:
   <<: !include ../sensors/power_monitor_cse7766.yaml
 
 switch:
-  <<: !include ../switches/relay.yaml
+  <<: !include ../switches/relay_always_on.yaml
