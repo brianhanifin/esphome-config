@@ -5,6 +5,7 @@
 substitutions:
   project: Shelly1 02
   id: shelly1_02
+  humidity_threshold: "55.0"
 
   <<: !include common/substitutions/gpio/shelly1.yaml
 
@@ -17,7 +18,7 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(humidity).state < 50;
+              return id(humidity).state < $humidity_threshold;
           then:
             # Turn off a manually turned on fan after 15 minutes, but only if humidity is below 50%.
             - delay: 15min
@@ -72,12 +73,12 @@ sensor:
     id: humidity
     entity_id: sensor.upstairs_bathroom_humidity
     on_value_range:
-      - above: 55.0
+      - above: $humidity_threshold
         then:
           - switch.turn_on: relay
-      - below: 50.0
+      - below: $humidity_threshold
         then:
           - switch.turn_off: relay
 
 switch:
-  <<: !include common/switches/relay_always_on.yaml
+  <<: !include common/switches/relay.yaml
