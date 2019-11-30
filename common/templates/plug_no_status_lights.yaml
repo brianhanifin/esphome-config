@@ -1,0 +1,16 @@
+---
+esphome:
+  name: ${id}
+  platform: ESP8266
+  board: esp01_1m
+
+<<: !include ../wifi.yaml
+<<: !include ../ota.yaml
+<<: !include ../api.yaml
+<<: !include ../logger_debug.yaml
+
+binary_sensor:
+  - !include ../binary_sensors/power_button.yaml
+
+switch:
+  - !include ../switches/relay.yaml
