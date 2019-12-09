@@ -1,7 +1,7 @@
 | Repository Status | ESPHome Community |
 | :--- | :--- |
-| [![last commit time][github-last-commit]][github-master] [![GitHub Activity][commits-shield]][commits] | [![Discord][discord-shield]][discord] [![Home Assistant Forum][forum-shield]][forum]  | 
-
+| [![last commit time][github-last-commit]][github-master] [![GitHub Activity][commits-shield]][commits] | [![Discord][discord-shield]][discord] [![Community Forum][discourse-shield]][discourse]  | 
+ 
 # My ESPHome Devices
 Configuration files for my ESP8266 / ESP32 plugs and boards for use with Home Assistant. I have made heavy use of `!include` files to limit code duplication. This allows me to focus on the advanced code I create for projects like my Bathroom Fan Controller and my Irrigation Controller.
 
@@ -38,9 +38,9 @@ These devices are great for shoving in a box behind a light switch to add smarts
 I coded this to be create a smart switch that is compatible with a chandelier with 9 hue bulbs. It's relay is disabled, unless Home Assistant is unavailable. This allows it to operate as a virtual 3-way switch with Home Assistant, as well as failing gracefully should Home Assistant be offline to act as a dumb toggle switch.
 
 #### Upstairs Bathroom Fan: shelly1_02.yaml
-This allows users to manually turn on or off the fan. If they turn it on while the humidity is below 50% then it will turn off after 15 minutes. If the humidity is above 50% when the manual switch is turned on, it will start a 60 minute timer which will absolutely turn the fan off at that time.
+This allows users to manually turn on or off the fan. If they turn it on while the humidity is below 65% then it will turn off after 15 minutes. If the humidity is above 65% when the manual switch is turned on, it will start a 60 minute timer which will absolutely turn the fan off at that time.
 
-The ESPHome code gets the humidity from Home Assistant and handles all automations internally. When the humidity goes above 55% it automatically turns on, until the humidity falls below 50%.
+The ESPHome code gets the humidity from Home Assistant and handles all automations internally. When the humidity goes above 65% it automatically turns on, until the humidity falls below 65%.
 
 The switch will also fail gracefully when Home Assistant is not available to act as a dumb toggle switch.
 
@@ -61,10 +61,10 @@ Ask on the [ESPHome #general channel on Discord][discord]. Use `#BrianHanifin` t
 [commits]: https://github.com/brianhanifin/esphome-config/commits/master
 [github-last-commit]: https://img.shields.io/github/last-commit/BrianHanifin/esphome-config.svg?style=plasticr
 [github-master]: https://github.com/BrianHanifin/esphome-config/commits/master
-[discord-shield]: https://img.shields.io/discord/429907082951524364.svg
+[discord-shield]: https://img.shields.io/discord/330944238910963714.svg?logo=discord&color=7289da
 [discord]: https://discord.gg/A7SaaSC
-[forum-shield]: https://img.shields.io/badge/home_assistant-forum-brightgreen.svg
-[forum]: https://community.home-assistant.io/u/brianhanifin/summary
+[discourse-shield]: https://img.shields.io/discourse/topics?color=46B4ED&label=community&logo=discourse&logoColor=46B4ED&server=https%3A%2F%2Fcommunity.home-assistant.io
+[discourse]: https://community.home-assistant.io/u/brianhanifin/summary
 
 [esphome-ble-hub]:https://esphome.io/components/esp32_ble_tracker.html
 [esphome-sonoff4pro]:https://esphome.io/devices/sonoff_4ch.html
