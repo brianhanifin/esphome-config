@@ -10,10 +10,10 @@ substitutions:
   id: irrigation
 
   # Duration in seconds
-  duration1: "3600" #Zone #1 (pool filler): 60 minutes
-  duration2: "300"  #Zone #2 (drip system): 5 minutes
-  duration3: "0"    #Zone #3 (disabled)
-  duration4: "0"    #Zone #4 (disabled)
+  duration1: "300"  #Zone #1 (drip system): 5 minutes
+  duration2: "0"    #Zone #2 (disabled)
+  duration3: "3600" #Zone #3 (pool filler): 60 minutes
+  # duration4: "0"    #Zone #4 (disabled)
   duration_default: "300" #5 minutes
 
   <<: !include common/substitutions/gpio/sonoff4chpror2.yaml
@@ -56,13 +56,13 @@ api:
           id: time3
           value: !lambda "return time;"
 
-    - service: set_time_4
-      variables:
-        time: int
-      then:
-        globals.set:
-          id: time4
-          value: !lambda "return time;"
+    # - service: set_time_4
+    #   variables:
+    #     time: int
+    #   then:
+    #     globals.set:
+    #       id: time4
+    #       value: !lambda "return time;"
 
 globals:
   # Irrigation time elapsed
@@ -96,9 +96,9 @@ globals:
     type: int
     restore_value: yes
     #initial_value: "0"
-  - id: remaining_time4
-    type: int
-    restore_value: no
+  # - id: remaining_time4
+  #   type: int
+  #   restore_value: no
 
   # Store previous values to verify change.
   - id: remaining_time1_previous
@@ -113,10 +113,10 @@ globals:
     type: int
     restore_value: no
     initial_value: "0"
-  - id: remaining_time4_previous
-    type: int
-    restore_value: no
-    initial_value: "0"
+  # - id: remaining_time4_previous
+  #   type: int
+  #   restore_value: no
+  #   initial_value: "0"
 
 # Common housekeeping components.
 output:
@@ -174,27 +174,27 @@ binary_sensor:
       then:
         - switch.toggle: zone3
 
-  - platform: gpio
-    id: key4
-    pin:
-      number: $button4_gpio
-      mode: INPUT_PULLUP
-      inverted: True
-    filters:
-      - delayed_on: 100ms
-      - delayed_off: 100ms
-    on_click:
-      min_length: 100ms
-      max_length: 500ms
-      then:
-        - switch.toggle: zone4
+  # - platform: gpio
+  #   id: key4
+  #   pin:
+  #     number: $button4_gpio
+  #     mode: INPUT_PULLUP
+  #     inverted: True
+  #   filters:
+  #     - delayed_on: 100ms
+  #     - delayed_off: 100ms
+  #   on_click:
+  #     min_length: 100ms
+  #     max_length: 500ms
+  #     then:
+  #       - switch.toggle: zone4
 
 switch:
   - !include common/switches/restart.yaml
 
   # Virtual Zone Switches which 
   - platform: template
-    name: $project Zone 1
+    name: ${id}_zone1
     optimistic: true
     id: zone1
     turn_on_action:
@@ -209,7 +209,7 @@ switch:
     lambda: return id(relay1).state;
 
   - platform: template
-    name: $project Zone 2
+    name: ${id}_zone2
     optimistic: true
     id: zone2
     turn_on_action:
@@ -224,7 +224,7 @@ switch:
     lambda: return id(relay2).state;
 
   - platform: template
-    name: $project Zone 3
+    name: ${id}_zone3
     optimistic: true
     id: zone3
     turn_on_action:
@@ -238,20 +238,20 @@ switch:
     - switch.turn_off: relay3
     lambda: return id(relay3).state;
 
-  - platform: template
-    name: $project Zone 4
-    optimistic: true
-    id: zone4
-    turn_on_action:
-      # Turn on if not disabled.
-      if:
-        condition:
-          lambda: return $duration4 > 0;
-        then:
-        - switch.turn_on: relay4
-    turn_off_action:
-    - switch.turn_off: relay4
-    lambda: return id(relay4).state;
+  # - platform: template
+  #   name: ${id}_zone4
+  #   optimistic: true
+  #   id: zone4
+  #   turn_on_action:
+  #     # Turn on if not disabled.
+  #     if:
+  #       condition:
+  #         lambda: return $duration4 > 0;
+  #       then:
+  #       - switch.turn_on: relay4
+  #   turn_off_action:
+  #   - switch.turn_off: relay4
+  #   lambda: return id(relay4).state;
 
   # Relays which trigger solenoids
   - platform: gpio
@@ -310,23 +310,23 @@ switch:
           id: ${id}_zone3_remaining
           state: "0"
 
-  - platform: gpio
-    id: relay4
-    pin: $relay4_gpio
-    on_turn_on:
-      - sensor.template.publish:
-          id: ${id}_zone4_remaining
-          state: !lambda 'return id(time4)/60;'
-      - globals.set:
-          id: time4
-          value: $duration4
-      - globals.set:
-          id: remaining_time4
-          value: !lambda "return id(time4);"
-    on_turn_off:
-      - sensor.template.publish:
-          id: ${id}_zone4_remaining
-          state: "0"
+  # - platform: gpio
+  #   id: relay4
+  #   pin: $relay4_gpio
+  #   on_turn_on:
+  #     - sensor.template.publish:
+  #         id: ${id}_zone4_remaining
+  #         state: !lambda 'return id(time4)/60;'
+  #     - globals.set:
+  #         id: time4
+  #         value: $duration4
+  #     - globals.set:
+  #         id: remaining_time4
+  #         value: !lambda "return id(time4);"
+  #   on_turn_off:
+  #     - sensor.template.publish:
+  #         id: ${id}_zone4_remaining
+  #         state: "0"
 
 sensor:
   - !include common/sensors/uptime.yaml
@@ -334,7 +334,7 @@ sensor:
 
   # Countdown sensors.
   - platform: template
-    name: $project Zone 1 Time Remaining
+    name: ${id}_zone1_remaining
     id: ${id}_zone1_remaining
     lambda: "return 0;"
     accuracy_decimals: 0
@@ -351,7 +351,7 @@ sensor:
               - switch.turn_off: relay1
 
   - platform: template
-    name: $project Zone 2 Time Remaining
+    name: ${id}_zone2_remaining
     id: ${id}_zone2_remaining
     lambda: "return 0;"
     accuracy_decimals: 0
@@ -368,7 +368,7 @@ sensor:
               - switch.turn_off: relay2
 
   - platform: template
-    name: $project Zone 3 Time Remaining
+    name: ${id}_zone3_remaining
     id: ${id}_zone3_remaining
     lambda: "return 0;"
     accuracy_decimals: 0
@@ -384,22 +384,22 @@ sensor:
             then:
               - switch.turn_off: relay3
 
-  - platform: template
-    name: $project Zone 4 Time Remaining
-    id: ${id}_zone4_remaining
-    lambda: "return 0;"
-    accuracy_decimals: 0
-    unit_of_measurement: minutes
-    icon: mdi:timer
-    filters:
-      - throttle: 15s
-    on_value:
-      then:
-        - if:
-            condition:
-              lambda: 'return id(remaining_time4) == 0;'
-            then:
-              - switch.turn_off: relay4
+  # - platform: template
+  #   name: ${id}_zone4_remaining
+  #   id: ${id}_zone4_remaining
+  #   lambda: "return 0;"
+  #   accuracy_decimals: 0
+  #   unit_of_measurement: minutes
+  #   icon: mdi:timer
+  #   filters:
+  #     - throttle: 15s
+  #   on_value:
+  #     then:
+  #       - if:
+  #           condition:
+  #             lambda: 'return id(remaining_time4) == 0;'
+  #           then:
+  #             - switch.turn_off: relay4
 
 interval:
   - interval: 5s
@@ -441,14 +441,14 @@ interval:
             id(${id}_zone3_remaining).publish_state(id(remaining_time3)/60);
           }
 
-          id(remaining_time4_previous) = id(remaining_time4);
-          if(id(relay4).state) {
-            id(remaining_time4)=id(remaining_time4)-5;
-            if(id(remaining_time4)<=0){
-              id(relay4).turn_off();
-              id(remaining_time4) = 0;
-            }
-          }
-          if (id(remaining_time4_previous) != id(remaining_time4)) {
-            id(${id}_zone4_remaining).publish_state(id(remaining_time4)/60);
-          }
+# id(remaining_time4_previous) = id(remaining_time4);
+# if(id(relay4).state) {
+#   id(remaining_time4)=id(remaining_time4)-5;
+#   if(id(remaining_time4)<=0){
+#     id(relay4).turn_off();
+#     id(remaining_time4) = 0;
+#   }
+# }
+# if (id(remaining_time4_previous) != id(remaining_time4)) {
+#   id(${id}_zone4_remaining).publish_state(id(remaining_time4)/60);
+# }
