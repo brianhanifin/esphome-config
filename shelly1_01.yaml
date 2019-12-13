@@ -45,15 +45,12 @@ binary_sensor:
   - platform: gpio
     pin:
       number: $button_gpio
-      inverted: True
-    name: $project Button
+    name: $project Wall Switch
     id: button
     filters:
       - delayed_on: 10ms
       - delayed_off: 10ms
-    on_press:
-      - script.execute: hass_light_toggle
-    on_release:
+    on_state:
       - script.execute: hass_light_toggle
 
 switch:

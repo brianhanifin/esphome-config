@@ -56,15 +56,12 @@ binary_sensor:
   - platform: gpio
     pin:
       number: $button_gpio
-      inverted: True
     #name: $project Button
     id: button
     filters:
       - delayed_on: 10ms
       - delayed_off: 10ms
-    on_press:
-      - script.execute: relay_toggle
-    on_release:
+    on_state:
       - script.execute: relay_toggle
 
 sensor:
