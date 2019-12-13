@@ -21,7 +21,7 @@ esphome:
 <<: !include common/logger_debug.yaml
 
 binary_sensor:
-  - !include common/binary_sensors/power_button.yaml
+  - !include common/binary_sensors/power_button_inverted.yaml
 
 light:
   - !include common/lights/status_led.yaml
