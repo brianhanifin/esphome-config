@@ -13,7 +13,7 @@ wifi:
   password: !secret wifi_pass
   use_address: 10.0.20.13
 <<: !include common/ota.yaml
-<<: !include common/logger.yaml
+<<: !include common/logger_info.yaml
 <<: !include common/api.yaml
 
 esp32_ble_tracker:

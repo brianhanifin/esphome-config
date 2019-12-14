@@ -27,7 +27,7 @@ esphome:
 
 <<: !include common/wifi.yaml
 <<: !include common/ota.yaml
-<<: !include common/logger_debug.yaml
+<<: !include common/logger.yaml
 
 # Enable Home Assistant API
 api:

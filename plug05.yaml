@@ -18,7 +18,7 @@ esphome:
 <<: !include common/wifi.yaml
 <<: !include common/ota.yaml
 <<: !include common/api.yaml
-<<: !include common/logger_debug.yaml
+<<: !include common/logger.yaml
 
 binary_sensor:
   - !include common/binary_sensors/power_button_inverted.yaml
