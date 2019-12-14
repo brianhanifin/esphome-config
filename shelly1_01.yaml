@@ -54,4 +54,4 @@ binary_sensor:
       - script.execute: hass_light_toggle
 
 switch:
-  <<: !include common/switches/relay_always_on.yaml
+  <<: !include common/switches/relay_always_on_internal.yaml
