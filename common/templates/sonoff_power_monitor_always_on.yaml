@@ -3,8 +3,6 @@ esphome:
   name: $id
   platform: ESP8266
   board: esp01_1m
-  
-  <<: !include ../esphome/leds/status.yaml
 
 <<: !include ../wifi.yaml
 <<: !include ../ota.yaml
@@ -12,14 +10,8 @@ esphome:
 
 <<: !include ../power_monitor_logger_uart.yaml
 
-output:
-  <<: !include ../outputs/status_led.yaml
-
-light:
-  <<: !include ../lights/status_led.yaml
-
 sensor:
   <<: !include ../sensors/power_monitor_cse7766.yaml
 
 switch:
-  <<: !include ../switches/relay_always_on.yaml
+  <<: !include ../switches/relay_always_on_internal.yaml
