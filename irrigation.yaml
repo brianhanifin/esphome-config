@@ -1,7 +1,7 @@
 ---
 # Forked from: https://github.com/bruxy70/Irrigation-with-display
 # MIT License: https://github.com/brianhanifin/Irrigation-with-display/blob/master/LICENSE
-# 
+#
 # Credit: @bruxy70 thank you for the significant head start!
 # Personal project goals: https://github.com/brianhanifin/Home-Assistant-Config/issues/37
 #
@@ -13,7 +13,6 @@ substitutions:
   duration1: "300"  #Zone #1 (drip system): 5 minutes
   duration2: "0"    #Zone #2 (disabled)
   duration3: "3600" #Zone #3 (pool filler): 60 minutes
-  # duration4: "0"    #Zone #4 (disabled)
   duration_default: "300" #5 minutes
 
   <<: !include common/substitutions/gpio/sonoff4chpror2.yaml
@@ -22,6 +21,8 @@ esphome:
   name: $id
   platform: ESP8266
   board: esp01_1m
+  includes:
+    - irrigation.h
 
   <<: !include common/esphome/leds/status_with_api.yaml
 
@@ -31,40 +32,9 @@ esphome:
 
 # Enable Home Assistant API
 api:
-  services:
-    - service: set_time_1
-      variables:
-        time: int
-      then:
-        globals.set:
-          id: time1
-          value: !lambda "return time;"
-
-    - service: set_time_2
-      variables:
-        time: int
-      then:
-        globals.set:
-          id: time2
-          value: !lambda "return time;"
-
-    - service: set_time_3
-      variables:
-        time: int
-      then:
-        globals.set:
-          id: time3
-          value: !lambda "return time;"
-
-    # - service: set_time_4
-    #   variables:
-    #     time: int
-    #   then:
-    #     globals.set:
-    #       id: time4
-    #       value: !lambda "return time;"
 
 globals:
+  # ============================================================================= #
   # Irrigation time elapsed
   - id: time1
     type: int
@@ -78,11 +48,8 @@ globals:
     type: int
     restore_value: no
     initial_value: $duration_default
-  - id: time4
-    type: int
-    restore_value: no
-    initial_value: $duration_default
 
+  # ============================================================================= #
   # Irrigation time remaining
   - id: remaining_time1
     type: int
@@ -96,10 +63,8 @@ globals:
     type: int
     restore_value: yes
     #initial_value: "0"
-  # - id: remaining_time4
-  #   type: int
-  #   restore_value: no
 
+  # ============================================================================= #
   # Store previous values to verify change.
   - id: remaining_time1_previous
     type: int
@@ -113,10 +78,6 @@ globals:
     type: int
     restore_value: no
     initial_value: "0"
-  # - id: remaining_time4_previous
-  #   type: int
-  #   restore_value: no
-  #   initial_value: "0"
 
 # Common housekeeping components.
 output:
@@ -125,9 +86,11 @@ output:
 light:
   <<: !include common/lights/status_led.yaml
 
+
 binary_sensor:
   - !include common/binary_sensors/status.yaml
 
+  # ============================================================================= #
   # Buttons along the left side of the unit (R1, R2, R3, R4).
   - platform: gpio
     id: key1
@@ -142,7 +105,7 @@ binary_sensor:
       min_length: 50ms
       max_length: 350ms
       then:
-        - switch.toggle: zone1
+        - switch.toggle: irrigation_zone1
 
   - platform: gpio
     id: key2
@@ -157,7 +120,7 @@ binary_sensor:
       min_length: 50ms
       max_length: 350ms
       then:
-        - switch.toggle: zone2
+        - switch.toggle: irrigation_zone2
 
   - platform: gpio
     id: key3
@@ -172,31 +135,19 @@ binary_sensor:
       min_length: 100ms
       max_length: 500ms
       then:
-        - switch.toggle: zone3
+        - switch.toggle: irrigation_zone3
 
-  # - platform: gpio
-  #   id: key4
-  #   pin:
-  #     number: $button4_gpio
-  #     mode: INPUT_PULLUP
-  #     inverted: True
-  #   filters:
-  #     - delayed_on: 100ms
-  #     - delayed_off: 100ms
-  #   on_click:
-  #     min_length: 100ms
-  #     max_length: 500ms
-  #     then:
-  #       - switch.toggle: zone4
 
 switch:
   - !include common/switches/restart.yaml
 
-  # Virtual Zone Switches which 
+  # ============================================================================= #
+  # Virtual Zone Switches which toggle the relay, and store the current state.
   - platform: template
-    name: ${id}_zone1
+    name: Zone1
+    id: irrigation_zone1
+    lambda: return id(relay1).state;
     optimistic: true
-    id: zone1
     turn_on_action:
       # Turn on if not disabled.
       if:
@@ -205,13 +156,13 @@ switch:
         then:
         - switch.turn_on: relay1
     turn_off_action:
-    - switch.turn_off: relay1
-    lambda: return id(relay1).state;
+      - switch.turn_off: relay1
 
   - platform: template
-    name: ${id}_zone2
+    name: Zone2
+    id: irrigation_zone2
+    lambda: return id(relay2).state;
     optimistic: true
-    id: zone2
     turn_on_action:
       # Turn on if not disabled.
       if:
@@ -220,13 +171,13 @@ switch:
         then:
         - switch.turn_on: relay2
     turn_off_action:
-    - switch.turn_off: relay2
-    lambda: return id(relay2).state;
+      - switch.turn_off: relay2
 
   - platform: template
-    name: ${id}_zone3
+    name: Zone3
+    id: irrigation_zone3
+    lambda: return id(relay3).state;
     optimistic: true
-    id: zone3
     turn_on_action:
       # Turn on if not disabled.
       if:
@@ -235,24 +186,9 @@ switch:
         then:
         - switch.turn_on: relay3
     turn_off_action:
-    - switch.turn_off: relay3
-    lambda: return id(relay3).state;
+      - switch.turn_off: relay3
 
-  # - platform: template
-  #   name: ${id}_zone4
-  #   optimistic: true
-  #   id: zone4
-  #   turn_on_action:
-  #     # Turn on if not disabled.
-  #     if:
-  #       condition:
-  #         lambda: return $duration4 > 0;
-  #       then:
-  #       - switch.turn_on: relay4
-  #   turn_off_action:
-  #   - switch.turn_off: relay4
-  #   lambda: return id(relay4).state;
-
+  # ============================================================================= #
   # Relays which trigger solenoids
   - platform: gpio
     id: relay1
@@ -260,7 +196,7 @@ switch:
     on_turn_on:
       then:
       - sensor.template.publish:
-          id: ${id}_zone1_remaining
+          id: irrigation_zone1_remaining
           state: !lambda 'return id(time1)/60;'
       - globals.set:
           id: time1
@@ -270,8 +206,13 @@ switch:
           value: !lambda "return id(time1);"
     on_turn_off:
       - sensor.template.publish:
-          id: ${id}_zone1_remaining
+          id: irrigation_zone1_remaining
           state: "0"
+      # Update the next scheduled run time.
+      - text_sensor.template.publish:
+          id: irrigation_zone1_next
+          state: !lambda |-
+            return update_next_runtime(id(ui_zone1_times).state);
 
   - platform: gpio
     id: relay2
@@ -279,7 +220,7 @@ switch:
     on_turn_on:
       then:
       - sensor.template.publish:
-          id: ${id}_zone2_remaining
+          id: irrigation_zone2_remaining
           state: !lambda 'return id(time2)/60;'
       - globals.set:
           id: time2
@@ -289,15 +230,20 @@ switch:
           value: !lambda "return id(time2);"
     on_turn_off:
       - sensor.template.publish:
-          id: ${id}_zone2_remaining
+          id: irrigation_zone2_remaining
           state: "0"
+      # Update the next scheduled run time.
+      - text_sensor.template.publish:
+          id: irrigation_zone2_next
+          state: !lambda |-
+            return update_next_runtime(id(ui_zone2_times).state);
 
   - platform: gpio
     id: relay3
     pin: $relay3_gpio
     on_turn_on:
       - sensor.template.publish:
-          id: ${id}_zone3_remaining
+          id: irrigation_zone3_remaining
           state: !lambda 'return id(time3)/60;'
       - globals.set:
           id: time3
@@ -307,41 +253,71 @@ switch:
           value: !lambda "return id(time3);"
     on_turn_off:
       - sensor.template.publish:
-          id: ${id}_zone3_remaining
+          id: irrigation_zone3_remaining
           state: "0"
+      # Update the next scheduled run time.
+      - text_sensor.template.publish:
+          id: irrigation_zone3_next
+          state: !lambda |-
+            return update_next_runtime(id(ui_zone3_times).state);
 
-  # - platform: gpio
-  #   id: relay4
-  #   pin: $relay4_gpio
-  #   on_turn_on:
-  #     - sensor.template.publish:
-  #         id: ${id}_zone4_remaining
-  #         state: !lambda 'return id(time4)/60;'
-  #     - globals.set:
-  #         id: time4
-  #         value: $duration4
-  #     - globals.set:
-  #         id: remaining_time4
-  #         value: !lambda "return id(time4);"
-  #   on_turn_off:
-  #     - sensor.template.publish:
-  #         id: ${id}_zone4_remaining
-  #         state: "0"
 
 sensor:
   - !include common/sensors/uptime.yaml
   - !include common/sensors/wifi_signal.yaml
 
+  # ============================================================================= #
+  # Retrieve durations settings from the Home Assistant UI.
+  - platform: homeassistant
+    id: ui_zone1_duration
+    entity_id: input_number.irrigation_zone1_duration
+    on_value:
+      then:
+      - sensor.template.publish:
+          id: irrigation_zone1_duration
+          state: !lambda "return id(ui_zone1_duration).state;"
+
+  - platform: homeassistant
+    id: ui_zone2_duration
+    entity_id: input_number.irrigation_zone2_duration
+    on_value:
+      then:
+      - sensor.template.publish:
+          id: irrigation_zone2_duration
+          state: !lambda "return id(ui_zone2_duration).state;"
+
+  - platform: homeassistant
+    id: ui_zone3_duration
+    entity_id: input_number.irrigation_zone3_duration
+    on_value:
+      then:
+      - sensor.template.publish:
+          id: irrigation_zone3_duration
+          state: !lambda "return id(ui_zone3_duration).state;"
+
+  # ============================================================================= #
+  # Store durations.
+  - platform: template
+    name: Zone1 Duration
+    id: irrigation_zone1_duration
+  - platform: template
+    name: Zone2 Duration
+    id: irrigation_zone2_duration
+  - platform: template
+    name: Zone3 Duration
+    id: irrigation_zone3_duration
+
+  # ============================================================================= #
   # Countdown sensors.
   - platform: template
-    name: ${id}_zone1_remaining
-    id: ${id}_zone1_remaining
+    name: Zone1 Remaining
+    id: irrigation_zone1_remaining
     lambda: "return 0;"
     accuracy_decimals: 0
     unit_of_measurement: minutes
     icon: mdi:timer
-    filters:
-      - throttle: 15s
+    # filters:
+    #   - throttle: 15s
     on_value:
       then:
         - if:
@@ -351,14 +327,14 @@ sensor:
               - switch.turn_off: relay1
 
   - platform: template
-    name: ${id}_zone2_remaining
-    id: ${id}_zone2_remaining
+    name: Zone2 Remaining
+    id: irrigation_zone2_remaining
     lambda: "return 0;"
     accuracy_decimals: 0
     unit_of_measurement: minutes
     icon: mdi:timer
-    filters:
-      - throttle: 15s
+    # filters:
+    #   - throttle: 15s
     on_value:
       then:
         - if:
@@ -368,14 +344,14 @@ sensor:
               - switch.turn_off: relay2
 
   - platform: template
-    name: ${id}_zone3_remaining
-    id: ${id}_zone3_remaining
+    name: Zone3 Remaining
+    id: irrigation_zone3_remaining
     lambda: "return 0;"
     accuracy_decimals: 0
     unit_of_measurement: minutes
     icon: mdi:timer
-    filters:
-      - throttle: 15s
+    # filters:
+    #   - throttle: 15s
     on_value:
       then:
         - if:
@@ -384,22 +360,61 @@ sensor:
             then:
               - switch.turn_off: relay3
 
-  # - platform: template
-  #   name: ${id}_zone4_remaining
-  #   id: ${id}_zone4_remaining
-  #   lambda: "return 0;"
-  #   accuracy_decimals: 0
-  #   unit_of_measurement: minutes
-  #   icon: mdi:timer
-  #   filters:
-  #     - throttle: 15s
-  #   on_value:
-  #     then:
-  #       - if:
-  #           condition:
-  #             lambda: 'return id(remaining_time4) == 0;'
-  #           then:
-  #             - switch.turn_off: relay4
+
+text_sensor:
+  # ============================================================================= #
+  # Retrieve list of times from the Home Assistant UI.
+  - platform: homeassistant
+    id: ui_zone1_times
+    entity_id: input_text.irrigation_zone1_times
+    on_value:
+      then:
+      - text_sensor.template.publish:
+          id: irrigation_zone1_times
+          state: !lambda "return id(ui_zone1_times).state;"
+
+  - platform: homeassistant
+    id: ui_zone2_times
+    entity_id: input_text.irrigation_zone2_times
+    on_value:
+      then:
+      - text_sensor.template.publish:
+          id: irrigation_zone2_times
+          state: !lambda "return id(ui_zone2_times).state;"
+
+  - platform: homeassistant
+    id: ui_zone3_times
+    entity_id: input_text.irrigation_zone3_times
+    on_value:
+      then:
+      - text_sensor.template.publish:
+          id: irrigation_zone3_times
+          state: !lambda "return id(ui_zone3_times).state;"
+
+  # ============================================================================= #
+  # Store time lists.
+  - platform: template
+    name: Zone1 Times List
+    id: irrigation_zone1_times
+  - platform: template
+    name: Zone2 Times List
+    id: irrigation_zone2_times
+  - platform: template
+    name: Zone3 Times List
+    id: irrigation_zone3_times
+
+  # ============================================================================= #
+  # Set the next scheduled time.
+  - platform: template
+    name: Zone1 Next Scheduled
+    id: irrigation_zone1_next
+  - platform: template
+    name: Zone2 Next Scheduled
+    id: irrigation_zone2_next
+  - platform: template
+    name: Zone3 Next Scheduled
+    id: irrigation_zone3_next
+
 
 interval:
   - interval: 5s
@@ -414,7 +429,7 @@ interval:
             }
           }
           if (id(remaining_time1_previous) != id(remaining_time1)) {
-            id(${id}_zone1_remaining).publish_state(id(remaining_time1)/60);
+            id(irrigation_zone1_remaining).publish_state(id(remaining_time1)/60);
           }
 
           id(remaining_time2_previous) = id(remaining_time2);
@@ -426,7 +441,7 @@ interval:
             }
           }
           if (id(remaining_time2_previous) != id(remaining_time2)) {
-            id(${id}_zone2_remaining).publish_state(id(remaining_time2)/60);
+            id(irrigation_zone2_remaining).publish_state(id(remaining_time2)/60);
           }
 
           id(remaining_time3_previous) = id(remaining_time3);
@@ -438,17 +453,28 @@ interval:
             }
           }
           if (id(remaining_time3_previous) != id(remaining_time3)) {
-            id(${id}_zone3_remaining).publish_state(id(remaining_time3)/60);
+            id(irrigation_zone3_remaining).publish_state(id(remaining_time3)/60);
           }
 
-# id(remaining_time4_previous) = id(remaining_time4);
-# if(id(relay4).state) {
-#   id(remaining_time4)=id(remaining_time4)-5;
-#   if(id(remaining_time4)<=0){
-#     id(relay4).turn_off();
-#     id(remaining_time4) = 0;
-#   }
-# }
-# if (id(remaining_time4_previous) != id(remaining_time4)) {
-#   id(${id}_zone4_remaining).publish_state(id(remaining_time4)/60);
-# }
+
+script:
+  - id: scheduler
+    then:
+      - logger.log: "[TODO] Script: scheduler"
+      # - if:
+      #     condition:
+      #       # If an irrigation event is scheduled for now.
+      #     then:
+      #       # Start irrigation event.
+
+
+# Time based automations.
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    on_time:
+      # Every 5 minutes
+      - seconds: 0
+        minutes: /5
+        then:
+          - script.execute: scheduler
