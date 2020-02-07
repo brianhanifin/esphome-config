@@ -72,8 +72,5 @@ string update_next_runtime(string time_list) {
     index += 2;
   }
 
-  delete token;
-  token = NULL;
-
   return "unknown";
 }
