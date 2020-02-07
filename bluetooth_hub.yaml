@@ -11,7 +11,14 @@ substitutions:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
-  use_address: 10.0.20.13
+
+  # Using these as a precaution to ensure solid WiFi connectivity.
+  power_save_mode: none
+  manual_ip:
+    static_ip: 10.0.20.13
+    gateway: 10.0.20.1
+    subnet: 255.255.255.0
+
 <<: !include common/ota.yaml
 <<: !include common/logger_info.yaml
 <<: !include common/api.yaml
