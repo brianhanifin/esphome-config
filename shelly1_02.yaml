@@ -5,7 +5,8 @@
 substitutions:
   project: Shelly1 02
   id: shelly1_02
-  humidity_threshold: "65.0"
+  #humidity_threshold: "65.0"
+  humidity_difference_threshold: "15.0" # 15% difference between house humidity and bathroom humidity.
 
   <<: !include common/substitutions/gpio/shelly1.yaml
 
@@ -17,10 +18,12 @@ script:
     then:
       - if:
           condition:
+            #lambda: |-
+            #  return id(humidity).state < $humidity_threshold;
             lambda: |-
-              return id(humidity).state < $humidity_threshold;
+              return id(humidity_difference).state < $humidity_difference_threshold;
           then:
-            # Turn off a manually turned on fan after 15 minutes, but only if humidity is below 50%.
+            # Turn off a manually turned on fan after 15 minutes, but only if humidity is below the threshold.
             - delay: 15min
             - switch.turn_off: relay
           else:
@@ -40,16 +43,16 @@ script:
               then:
                 # Turn the relay on as requested.
                 - switch.turn_on: relay
-                
+
                 - script.execute: relay_off_after_delay
               else:
                 # Turn the switch off as requested.
                 - switch.turn_off: relay
-                
+
         else:
           # When Home Assistant is unavailable, just toggle the relay.
           - switch.toggle: relay
-                
+
 
 binary_sensor:
   # Physical Toggle Switch. Monitor for switch position changes internally. Do not expose to Home Assistant.
@@ -65,17 +68,29 @@ binary_sensor:
       - script.execute: relay_toggle
 
 sensor:
-  # Monitor the humidity from Home Assistant.
+  # Measure the difference between the house humidity and bathroom humidity from Home Assistant.
   - platform: homeassistant
-    id: humidity
-    entity_id: sensor.upstairs_bathroom_humidity
+    id: humidity_difference
+    entity_id: sensor.upstairs_bathroom_humidity_difference
     on_value_range:
-      - above: $humidity_threshold
+      - above: $humidity_difference_threshold
         then:
           - switch.turn_on: relay
-      - below: $humidity_threshold
+      - below: $humidity_difference_threshold
         then:
           - switch.turn_off: relay
+
+  # Monitor the humidity from Home Assistant.
+  # - platform: homeassistant
+  #   id: humidity
+  #   entity_id: sensor.upstairs_bathroom_humidity
+  #   on_value_range:
+  #     - above: $humidity_threshold
+  #       then:
+  #         - switch.turn_on: relay
+  #     - below: $humidity_threshold
+  #       then:
+  #         - switch.turn_off: relay
 
 switch:
   <<: !include common/switches/relay.yaml
