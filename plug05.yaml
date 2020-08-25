@@ -2,7 +2,7 @@
 # Luntak brand Tuya Plug
 #
 substitutions:
-  project: Plug05
+  project: Hot Water Pump
   id: plug05
   off_delay: 10min
 
