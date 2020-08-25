@@ -1,0 +1,143 @@
+---
+substitutions:
+  project: Pool Sensors
+  id: pool
+
+  air_temp_gpio: GPIO19
+
+  #led_status_gpio: GPIO02
+
+  pool_level_for_duration: 2min
+  pool_level_full_gpio: GPIO22 # Yellow Wire/OK Float
+  pool_level_low_gpio: GPIO23 # Red Wire/Low Float
+
+  pool_temp_gpio: GPIO21 # Yellow Wire/Data Wire
+
+<<: !include common/esphome/esp32_nodemcu.yaml
+
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+
+  # Disable rebooting due to losing connection with Home Assistant. This will allow
+  # the watering schedule to continue if Home Assistant goes down. Should it become
+  # unresponsive, we can have Home Assistant power cycle a smart plug to reboot it.
+  #reboot_timeout: 0s
+
+  # Using these as a precaution to ensure solid WiFi connectivity.
+  power_save_mode: none
+  manual_ip:
+    static_ip: 10.0.20.19
+    gateway: 10.0.20.1
+    subnet: 255.255.255.0
+
+<<: !include common/ota.yaml
+<<: !include common/logger.yaml
+<<: !include common/api.yaml
+
+
+# output:
+#   <<: !include common/outputs/status_led_esp32.yaml
+
+
+# light:
+#   <<: !include common/lights/status_led.yaml
+
+
+binary_sensor:
+  - !include common/binary_sensors/status.yaml
+
+  # ============================================================================= #
+  # Pool level physical float switches. State changes update sensor.pool_level
+  # (states: LOW, OK, FULL).
+  #
+  # FULL = Top Float Switch Up
+  - platform: gpio
+    id: pool_level_full
+    pin:
+      #inverted: True
+      mode: INPUT_PULLUP
+      number: $pool_level_full_gpio
+    # Pool switches must remain in the same state for several minutes before the state is updated.
+    #   This avoids waves constantly flooding Home Assistant with state changes.
+    filters:
+      - delayed_on: $pool_level_for_duration
+      - delayed_off: $pool_level_for_duration
+    # Set the pool_level sensor to "FULL" when this is ON.
+    on_press:
+      then:
+        - text_sensor.template.publish:
+            id: pool_level
+            state: FULL
+    # Set the pool_level sensor to "OK" when this is OFF.
+    on_release:
+      then:
+        - if:
+            condition:
+              binary_sensor.is_off: pool_level_low
+            then:
+            - text_sensor.template.publish:
+                id: pool_level
+                state: OK
+
+  # LOW = Bottom Float Switch Down
+  - platform: gpio
+    id: pool_level_low
+    pin:
+      inverted: True
+      mode: INPUT_PULLUP
+      number: $pool_level_low_gpio
+    # Pool switches must remain in the same state for several minutes before the state is updated.
+    #   This avoids waves constantly flooding Home Assistant with state changes.
+    filters:
+      - delayed_on: $pool_level_for_duration
+      - delayed_off: $pool_level_for_duration
+    # Set the pool_level sensor to "LOW" when this is ON.
+    on_press:
+      then:
+        - text_sensor.template.publish:
+            id: pool_level
+            state: LOW
+    # Set the pool_level sensor to "OK" when this is OFF.
+    on_release:
+      then:
+        - if:
+            condition:
+              binary_sensor.is_off: pool_level_full
+            then:
+            - text_sensor.template.publish:
+                id: pool_level
+                state: OK
+
+dallas:
+  - pin: $pool_temp_gpio
+
+
+sensor:
+  - !include common/sensors/uptime.yaml
+  - !include common/sensors/wifi_signal.yaml
+
+  - platform: dht
+    pin: $air_temp_gpio
+    model: AM2302
+    temperature:
+      name: Pool Air Temperature
+    humidity:
+      name: Pool Air Humidity
+
+  - platform: dallas
+    address: 0x720119380145BF28
+    id: pool_temp
+    name: Pool Temperature
+
+
+switch:
+  - !include common/switches/restart.yaml
+
+
+text_sensor:
+  # Pool level states: LOW, OK, FULL
+  - platform: template
+    id: pool_level
+    name: Pool Level

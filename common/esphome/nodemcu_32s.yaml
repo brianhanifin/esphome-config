@@ -1,0 +1,2 @@
+---
+<<: !include esp32_nodemcu.yaml
