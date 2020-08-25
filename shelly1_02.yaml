@@ -3,55 +3,15 @@
 # Location: Upstairs Bathroom
 #
 substitutions:
-  project: Shelly1 02
+  project: Upstairs Bathroom Fan
   id: shelly1_02
-  #humidity_threshold: "65.0"
-  humidity_difference_threshold: "15.0" # 15% difference between house humidity and bathroom humidity.
+  humidity_difference_threshold: "15.0"   # 15% difference between house humidity and bathroom humidity.
+  countdown_duration: "900"               # 900 seconds = 15 minutes
 
   <<: !include common/substitutions/gpio/shelly1.yaml
 
 <<: !include common/esphome/esp8266.yaml
 <<: !include common/common.yaml
-
-script:
-  - id: relay_off_after_delay
-    then:
-      - if:
-          condition:
-            #lambda: |-
-            #  return id(humidity).state < $humidity_threshold;
-            lambda: |-
-              return id(humidity_difference).state < $humidity_difference_threshold;
-          then:
-            # Turn off a manually turned on fan after 15 minutes, but only if humidity is below the threshold.
-            - delay: 15min
-            - switch.turn_off: relay
-          else:
-            # No matter what, turn the fan off after an hour.
-            - delay: 60min
-            - switch.turn_off: relay
-
-  - id: relay_toggle
-    then:
-      if:
-        condition:
-          api.connected:
-        then:
-          - if:
-              condition:
-                switch.is_off: relay
-              then:
-                # Turn the relay on as requested.
-                - switch.turn_on: relay
-
-                - script.execute: relay_off_after_delay
-              else:
-                # Turn the switch off as requested.
-                - switch.turn_off: relay
-
-        else:
-          # When Home Assistant is unavailable, just toggle the relay.
-          - switch.toggle: relay
 
 
 binary_sensor:
@@ -59,13 +19,78 @@ binary_sensor:
   - platform: gpio
     pin:
       number: $button_gpio
-    #name: $project Button
     id: button
     filters:
       - delayed_on: 10ms
       - delayed_off: 10ms
     on_state:
-      - script.execute: relay_toggle
+      - switch.toggle: relay
+      
+      - text_sensor.template.publish:
+          id: trigger
+          state: PHYSICAL
+      
+      # Start the countdown timer.
+      - globals.set:
+          id: remaining_time
+          value: !lambda return $countdown_duration;
+  
+  #- platform: homeassistant
+  #  entity_id: binary_sensor.upstairs_bathroom_humidity_decrease
+  #  id: humidity_decrease_trend
+  #  on_state:
+  #    then:
+  #      - lambda: |-
+  #          if (id(humidity_difference).state < $humidity_difference_threshold) {
+  #            id(relay).turn_off();
+  #          }
+  
+  #- platform: homeassistant
+  #  entity_id: binary_sensor.upstairs_bathroom_humidity_increase
+  #  id: humidity_increase_trend
+  #  on_state:
+  #    then:
+  #      # Turn the relay on.
+  #      - switch.turn_on: relay
+  #      
+  #      - text_sensor.template.publish:
+  #          id: trigger
+  #          state: TREND
+
+globals:
+  - id: remaining_time
+    type: int
+    restore_value: no
+    initial_value: "0"
+
+# Update the countdown timers every 5 seconds.
+interval:
+  - interval: 5s
+    then:
+      #- logger.log: "5 seconds have passed."
+      #- logger.log:
+      #    format: "remaining_time: %s"
+      #    args: ['id(remaining_time).state']
+      
+      - lambda: |-
+          if (id(remaining_time) > 0) {
+            // When the relay is on.
+            if (id(relay).state) {
+              // Decrement the timer.
+              id(remaining_time) -= 5;
+
+              // Turn off the relay when the time reaches zero... or the remaining time fails a sanity check!
+              if (id(remaining_time) <= 0) {
+                if (id(humidity_difference).state < $humidity_difference_threshold) {
+                  id(relay).turn_off();
+                  id(remaining_time) = 0;
+                } else {
+                  // Restart countdown
+                  id(remaining_time) = $countdown_duration;
+                }
+              }
+            }
+          }
 
 sensor:
   # Measure the difference between the house humidity and bathroom humidity from Home Assistant.
@@ -76,21 +101,64 @@ sensor:
       - above: $humidity_difference_threshold
         then:
           - switch.turn_on: relay
+          
+          - text_sensor.template.publish:
+              id: trigger
+              state: THRESHOLD
       - below: $humidity_difference_threshold
         then:
           - switch.turn_off: relay
 
-  # Monitor the humidity from Home Assistant.
-  # - platform: homeassistant
-  #   id: humidity
-  #   entity_id: sensor.upstairs_bathroom_humidity
-  #   on_value_range:
-  #     - above: $humidity_threshold
-  #       then:
-  #         - switch.turn_on: relay
-  #     - below: $humidity_threshold
-  #       then:
-  #         - switch.turn_off: relay
-
 switch:
-  <<: !include common/switches/relay.yaml
+  - platform: gpio
+    id: relay
+    pin: $relay_gpio
+    #restore_mode: ALWAYS_OFF
+
+  - platform: template
+    name: $project
+    optimistic: no
+    lambda: |-
+      if (id(relay).state) {
+        return true;
+      } else {
+        return false;
+      }
+    turn_on_action:
+      - switch.turn_on: relay
+      
+      - text_sensor.template.publish:
+          id: trigger
+          state: VIRTUAL
+      
+      # Start the countdown timer.
+      - globals.set:
+          id: remaining_time
+          value: !lambda return $countdown_duration;
+    turn_off_action:
+      - switch.turn_off: relay
+
+text_sensor:
+  # Trigger states: PHYSICAL, VIRTUAL (UI or Alexa), TREND, THRESHOLD
+  - platform: template
+    id: trigger
+    name: "$project: Last Trigger"
+   # lambda: return {""};
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    on_time: 
+      - seconds: 0
+        minutes: /5
+        then:
+          # Every 5 minutes verify an automatically turned on fan is still above the humidity difference threshold.
+          - if:
+              condition:
+                lambda:  |-
+                  return (id(trigger).state == "TREND" || id(trigger).state == "THRESHOLD");
+              then:
+                - lambda: |-
+                    if (id(humidity_difference).state < $humidity_difference_threshold) {
+                      id(relay).turn_off();
+                    }
