@@ -244,7 +244,7 @@ sensor:
     lambda: "return 0;"
     accuracy_decimals: 0
     unit_of_measurement: minutes
-    icon: mdi:timer
+    icon: mdi:timer-outline
     on_value:
       then:
         - if:
@@ -259,7 +259,7 @@ sensor:
     lambda: "return 0;"
     accuracy_decimals: 0
     unit_of_measurement: minutes
-    icon: mdi:timer
+    icon: mdi:timer-outline
     on_value:
       then:
         - if:
