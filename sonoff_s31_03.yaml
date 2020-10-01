@@ -2,7 +2,7 @@
 # Sonoff S31 Power Monitoring Plug
 #
 substitutions:
-  project: Sonoff S31 03
+  project: Prusa
   id: sonoff_s31_03
 
   <<: !include common/substitutions/gpio/sonoff.yaml

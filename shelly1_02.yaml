@@ -5,7 +5,7 @@
 substitutions:
   project: Upstairs Bathroom Fan
   id: shelly1_02
-  humidity_difference_threshold: "15.0"   # 15% difference between house humidity and bathroom humidity.
+  humidity_difference_threshold: "10.0"   # 10% difference between house humidity and bathroom humidity.
   countdown_duration: "900"               # 900 seconds = 15 minutes
 
   <<: !include common/substitutions/gpio/shelly1.yaml
@@ -31,9 +31,13 @@ binary_sensor:
           state: PHYSICAL
       
       # Start the countdown timer.
-      - globals.set:
-          id: remaining_time
-          value: !lambda return $countdown_duration;
+      - if:
+          condition:
+            switch.is_on: relay
+          then:
+            - globals.set:
+                id: remaining_time
+                value: !lambda return $countdown_duration;
   
   #- platform: homeassistant
   #  entity_id: binary_sensor.upstairs_bathroom_humidity_decrease
@@ -56,6 +60,36 @@ binary_sensor:
   #      - text_sensor.template.publish:
   #          id: trigger
   #          state: TREND
+
+  # Use motion detection to keep fan running or turn it off when humidity isn't an issue.
+  - platform: homeassistant
+    id: motion
+    entity_id: binary_sensor.upstairs_bathroom_motion
+    on_state:
+      then:
+        if:
+          # When motion is no longer detected.
+          condition:
+            binary_sensor.is_off: motion
+          then:
+            # Turn off the relay if the humidity difference is below the threshold.
+            if:
+              condition:
+                sensor.in_range:
+                  id: humidity_difference
+                  below: $humidity_difference_threshold
+              then:
+                - switch.turn_off: relay
+          # When motion is detected, and the fan is still on, extend the timeout timer.
+          else:
+            if:
+              condition:
+                switch.is_on: relay
+              then:
+                # Start the countdown timer over.
+                - globals.set:
+                    id: remaining_time
+                    value: !lambda return $countdown_duration;
 
 globals:
   - id: remaining_time
@@ -81,12 +115,13 @@ interval:
 
               // Turn off the relay when the time reaches zero... or the remaining time fails a sanity check!
               if (id(remaining_time) <= 0) {
-                if (id(humidity_difference).state < $humidity_difference_threshold) {
+                // Turn the relay off, unless someone is still present OR the humidity is higher than the threshold.
+                if (
+                    id(humidity_difference).state < $humidity_difference_threshold
+                    or id(motion).state != true
+                  ) {
                   id(relay).turn_off();
                   id(remaining_time) = 0;
-                } else {
-                  // Restart countdown
-                  id(remaining_time) = $countdown_duration;
                 }
               }
             }

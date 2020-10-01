@@ -7,9 +7,9 @@ substitutions:
 
   #led_status_gpio: GPIO02
 
-  pool_level_for_duration: 2min
-  pool_level_full_gpio: GPIO22 # Yellow Wire/OK Float
-  pool_level_low_gpio: GPIO23 # Red Wire/Low Float
+  pool_level_for_duration: 1sec #2min
+  pool_level_full_gpio: GPIO23 # Yellow Wire/OK Float
+  pool_level_low_gpio: GPIO22 # Red Wire/Low Float
 
   pool_temp_gpio: GPIO21 # Yellow Wire/Data Wire
 
@@ -19,11 +19,6 @@ substitutions:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
-
-  # Disable rebooting due to losing connection with Home Assistant. This will allow
-  # the watering schedule to continue if Home Assistant goes down. Should it become
-  # unresponsive, we can have Home Assistant power cycle a smart plug to reboot it.
-  #reboot_timeout: 0s
 
   # Using these as a precaution to ensure solid WiFi connectivity.
   power_save_mode: none

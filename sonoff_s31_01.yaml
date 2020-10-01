@@ -2,7 +2,7 @@
 # Sonoff S31 Power Monitoring Plug, Always On
 #
 substitutions:
-  project: Sonoff S31 01
+  project: Glowforge Power Monitor
   id: sonoff_s31_01
 
   <<: !include common/substitutions/gpio/sonoff.yaml

@@ -382,6 +382,7 @@ interval:
 time:
   - platform: homeassistant
     id: homeassistant_time
+    timezone: America/Los_Angeles
     on_time:
       - seconds: 0
         minutes: /1

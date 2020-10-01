@@ -3,4 +3,5 @@ platform: gpio
 name:  $project
 id: relay
 pin: $relay_gpio
-restore_mode: ALWAYS_OFF
+# disable following line to enable restore_mode: RESTORE_DEFAULT_OFF (default)
+#restore_mode: ALWAYS_OFF

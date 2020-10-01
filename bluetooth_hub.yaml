@@ -21,12 +21,25 @@ wifi:
 
 <<: !include common/ota.yaml
 <<: !include common/logger_info.yaml
+#<<: !include common/logger_debug.yaml
 <<: !include common/api.yaml
 
 esp32_ble_tracker:
   # scan_parameters:
   #   interval: 160 ms
   #   window: 160 ms
+
+# text_sensor:
+#   - platform: ble_scanner
+#     name: Bluetooth Hub Scanner
+#     id: bluetooth_hub_scanner
+#     on_value:
+#       then:
+#         - lambda: |-
+#             parse_json(id(bluetooth_hub_scanner));
+#             if (id(bluetooth_hub_scanner)["name"] != "") {
+#               ESP_LOGI("main", "Value of my sensor: %s", id(bluetooth_hub_scanner)["name"].c_str());
+#             }
 
 sensor:
   # - platform: ble_rssi
