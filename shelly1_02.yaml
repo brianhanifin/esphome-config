@@ -53,11 +53,6 @@ binary_sensor:
               then:
                 - script.execute: timer_restart
 
-# fan:
-#   - platform: binary
-#     name: $project
-#     output: virtual_switch
-
 globals:
   - id: remaining_time
     type: int
@@ -68,10 +63,10 @@ globals:
 interval:
   - interval: 5s
     then:
-      #- logger.log: "5 seconds have passed."
-      #- logger.log:
-      #    format: "remaining_time: %s"
-      #    args: ['id(remaining_time).state']
+      # - logger.log: "5 seconds have passed."
+      # - logger.log:
+      #     format: "remaining_time: %s"
+      #     args: ['id(remaining_time)']
       
       - lambda: |-
           if (id(remaining_time) > 0) {
@@ -116,11 +111,7 @@ switch:
     name: $project
     optimistic: no
     lambda: |-
-      if (id(relay).state) {
-        return true;
-      } else {
-        return false;
-      }
+      return (id(relay).state);
     turn_on_action:
       - switch.turn_on: relay
       
