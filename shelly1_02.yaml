@@ -3,16 +3,22 @@
 # Location: Upstairs Bathroom
 #
 substitutions:
-  project: Upstairs Bathroom Fan
+  project: Upstairs Bathroom Exhaust
   id: shelly1_02
   humidity_difference_threshold: "10.0"   # 10% difference between house humidity and bathroom humidity.
-  countdown_duration: "900"               # 900 seconds = 15 minutes
+  countdown_duration: "600"               # 900 seconds = 15 minutes
 
   <<: !include common/substitutions/gpio/shelly1.yaml
 
 <<: !include common/esphome/esp8266.yaml
 <<: !include common/common.yaml
 
+script:
+  - id: timer_restart
+    then:
+      - globals.set:
+          id: remaining_time
+          value: !lambda return $countdown_duration;
 
 binary_sensor:
   # Physical Toggle Switch. Monitor for switch position changes internally. Do not expose to Home Assistant.
@@ -25,71 +31,32 @@ binary_sensor:
       - delayed_off: 10ms
     on_state:
       - switch.toggle: relay
-      
+
       - text_sensor.template.publish:
           id: trigger
           state: PHYSICAL
-      
-      # Start the countdown timer.
-      - if:
-          condition:
-            switch.is_on: relay
-          then:
-            - globals.set:
-                id: remaining_time
-                value: !lambda return $countdown_duration;
-  
-  #- platform: homeassistant
-  #  entity_id: binary_sensor.upstairs_bathroom_humidity_decrease
-  #  id: humidity_decrease_trend
-  #  on_state:
-  #    then:
-  #      - lambda: |-
-  #          if (id(humidity_difference).state < $humidity_difference_threshold) {
-  #            id(relay).turn_off();
-  #          }
-  
-  #- platform: homeassistant
-  #  entity_id: binary_sensor.upstairs_bathroom_humidity_increase
-  #  id: humidity_increase_trend
-  #  on_state:
-  #    then:
-  #      # Turn the relay on.
-  #      - switch.turn_on: relay
-  #      
-  #      - text_sensor.template.publish:
-  #          id: trigger
-  #          state: TREND
 
-  # Use motion detection to keep fan running or turn it off when humidity isn't an issue.
+  # Use motion detection to keep fan running.
   - platform: homeassistant
     id: motion
     entity_id: binary_sensor.upstairs_bathroom_motion
     on_state:
       then:
         if:
-          # When motion is no longer detected.
+          # Reset the timer when the relay is on when motion is detected.
           condition:
-            binary_sensor.is_off: motion
+            binary_sensor.is_on: motion
           then:
-            # Turn off the relay if the humidity difference is below the threshold.
-            if:
-              condition:
-                sensor.in_range:
-                  id: humidity_difference
-                  below: $humidity_difference_threshold
-              then:
-                - switch.turn_off: relay
-          # When motion is detected, and the fan is still on, extend the timeout timer.
-          else:
             if:
               condition:
                 switch.is_on: relay
               then:
-                # Start the countdown timer over.
-                - globals.set:
-                    id: remaining_time
-                    value: !lambda return $countdown_duration;
+                - script.execute: timer_restart
+
+# fan:
+#   - platform: binary
+#     name: $project
+#     output: virtual_switch
 
 globals:
   - id: remaining_time
@@ -115,14 +82,8 @@ interval:
 
               // Turn off the relay when the time reaches zero... or the remaining time fails a sanity check!
               if (id(remaining_time) <= 0) {
-                // Turn the relay off, unless someone is still present OR the humidity is higher than the threshold.
-                if (
-                    id(humidity_difference).state < $humidity_difference_threshold
-                    or id(motion).state != true
-                  ) {
-                  id(relay).turn_off();
-                  id(remaining_time) = 0;
-                }
+                id(relay).turn_off();
+                id(remaining_time) = 0;
               }
             }
           }
@@ -136,21 +97,22 @@ sensor:
       - above: $humidity_difference_threshold
         then:
           - switch.turn_on: relay
-          
+
           - text_sensor.template.publish:
               id: trigger
               state: THRESHOLD
-      - below: $humidity_difference_threshold
-        then:
-          - switch.turn_off: relay
 
 switch:
   - platform: gpio
     id: relay
     pin: $relay_gpio
     #restore_mode: ALWAYS_OFF
+    on_turn_on:
+      # Start the countdown timer.
+      - script.execute: timer_restart
 
   - platform: template
+    id: virtual_switch
     name: $project
     optimistic: no
     lambda: |-
@@ -165,20 +127,14 @@ switch:
       - text_sensor.template.publish:
           id: trigger
           state: VIRTUAL
-      
-      # Start the countdown timer.
-      - globals.set:
-          id: remaining_time
-          value: !lambda return $countdown_duration;
     turn_off_action:
       - switch.turn_off: relay
 
 text_sensor:
-  # Trigger states: PHYSICAL, VIRTUAL (UI or Alexa), TREND, THRESHOLD
+  # Trigger states: PHYSICAL, VIRTUAL (UI or Alexa/Google), THRESHOLD
   - platform: template
     id: trigger
     name: "$project: Last Trigger"
-   # lambda: return {""};
 
 time:
   - platform: homeassistant
@@ -191,7 +147,7 @@ time:
           - if:
               condition:
                 lambda:  |-
-                  return (id(trigger).state == "TREND" || id(trigger).state == "THRESHOLD");
+                  return (id(trigger).state == "THRESHOLD");
               then:
                 - lambda: |-
                     if (id(humidity_difference).state < $humidity_difference_threshold) {
