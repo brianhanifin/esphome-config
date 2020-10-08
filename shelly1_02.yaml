@@ -6,7 +6,7 @@ substitutions:
   project: Upstairs Bathroom Exhaust
   id: shelly1_02
   humidity_difference_threshold: "10.0"   # 10% difference between house humidity and bathroom humidity.
-  countdown_duration: "600"               # 900 seconds = 15 minutes
+  countdown_duration: "600"               # 600 seconds = 10 minutes
 
   <<: !include common/substitutions/gpio/shelly1.yaml
 
@@ -14,7 +14,22 @@ substitutions:
 <<: !include common/common.yaml
 
 script:
-  - id: timer_restart
+  - id: countdown_end
+    then:
+      if:
+        condition:
+          sensor.in_range:
+            id: humidity_difference
+            above: $humidity_difference_threshold
+        then:
+          - script.execute: countdown_restart
+        else:
+          - switch.turn_off: relay
+          - globals.set:
+              id: remaining_time
+              value: "0"
+
+  - id: countdown_restart
     then:
       - globals.set:
           id: remaining_time
@@ -51,7 +66,7 @@ binary_sensor:
               condition:
                 switch.is_on: relay
               then:
-                - script.execute: timer_restart
+                - script.execute: countdown_restart
 
 globals:
   - id: remaining_time
@@ -68,20 +83,37 @@ interval:
       #     format: "remaining_time: %s"
       #     args: ['id(remaining_time)']
       
-      - lambda: |-
-          if (id(remaining_time) > 0) {
-            // When the relay is on.
-            if (id(relay).state) {
-              // Decrement the timer.
-              id(remaining_time) -= 5;
+      if:
+        condition:
+          lambda: return id(remaining_time) > 0;
+        then:
+          if:
+            condition:
+              lambda: return id(relay).state;
+            then:
+              - globals.set:
+                  id: remaining_time
+                  value: !lambda return id(remaining_time) -= 5;
 
-              // Turn off the relay when the time reaches zero... or the remaining time fails a sanity check!
-              if (id(remaining_time) <= 0) {
-                id(relay).turn_off();
-                id(remaining_time) = 0;
-              }
-            }
-          }
+              - if:
+                  condition:
+                    lambda: return id(remaining_time) <= 0;
+                  then:
+                    script.execute: countdown_end
+
+      # - lambda: |-
+      #     if (id(remaining_time) > 0) {
+      #       // When the relay is on.
+      #       if (id(relay).state) {
+      #         // Decrement the timer.
+      #         id(remaining_time) -= 5;
+
+      #         // Call countdown_end script when the time reaches zero... or the remaining time fails a sanity check!
+      #         if (id(remaining_time) <= 0) {
+      #           id(countdown_end).execute();
+      #         }
+      #       }
+      #     }
 
 sensor:
   # Measure the difference between the house humidity and bathroom humidity from Home Assistant.
@@ -104,7 +136,7 @@ switch:
     #restore_mode: ALWAYS_OFF
     on_turn_on:
       # Start the countdown timer.
-      - script.execute: timer_restart
+      - script.execute: countdown_restart
 
   - platform: template
     id: virtual_switch
