@@ -1,11 +1,21 @@
-# Ignore all subfolders.
-**/
+# Extension ignores
+*.ini
+
+# Ignore project folders
+.esphome/
+3rd_party/
+bluetooth_hub/
+irrigation/
+plug*/
+pool/
+shelly*/
+sonoff*/
+
+# Ignore subfolders.
+**/lib
+**/src
 
 # Specific file ignores.
-secrets.yaml
-.DS_Store
 ._*
-
-# Specific folders to include.
-!common
-!common/**
+.DS_Store
+secrets.yaml

@@ -1,0 +1,30 @@
+---
+## Source: https://github.com/frenck/home-assistant-config/tree/master/.github/workflows
+name: build
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+
+jobs:
+  esphome:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⤵️ Check out configuration from GitHub
+        uses: actions/checkout@v1
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install esphome
+          pip list
+          esphome version
+      - name: Copy secrets file into configuration folder
+        run: cp ./secrets.yaml ./config/esphome/
+      - name: Run esphome on all files
+        # yamllint disable rule:line-length
+        run: |
+          for file in $(find ./config/esphome -type f -name "*.yaml" -not -name "secrets.yaml"); do esphome "${file}" config; done

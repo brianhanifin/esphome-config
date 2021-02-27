@@ -5,7 +5,7 @@
 substitutions:
   project: Upstairs Bathroom Exhaust
   id: shelly1_02
-  humidity_difference_threshold: "7.5"   # Difference between house humidity and bathroom humidity.
+  humidity_difference_threshold: "12.5"   # Difference between house humidity and bathroom humidity.
   countdown_duration: "600"               # 600 seconds = 10 minutes
 
   <<: !include common/substitutions/gpio/shelly1.yaml

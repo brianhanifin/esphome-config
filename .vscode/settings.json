@@ -7,5 +7,13 @@
     "pioenvs",
     "sonoff",
     "tuya"
-  ]
+  ],
+  "files.exclude": {
+    "**/*.ini": true,
+    "**/lib": true,
+    "**/src": true,
+    "**/._*": true,
+    "**/.DS_Store": true,
+    "**/secrets.yaml": true
+  }
 }
