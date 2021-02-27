@@ -23,7 +23,7 @@ jobs:
           pip list
           esphome version
       - name: Copy secrets file into configuration folder
-        run: cp ./secrets.yaml ./config/esphome/
+        run: cp -R ./.stubs/* ./config/esphome/
       - name: Run esphome on all files
         # yamllint disable rule:line-length
         run: |

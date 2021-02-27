@@ -18,4 +18,7 @@ sonoff*/
 # Specific file ignores.
 ._*
 .DS_Store
-secrets.yaml
+/secrets.yaml
+
+# Specific includes.
+#!.stubs/secrets.yaml

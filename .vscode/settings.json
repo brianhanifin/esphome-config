@@ -9,11 +9,21 @@
     "tuya"
   ],
   "files.exclude": {
+    "/secrets.yaml": true,
+    ".stubs/secrets.yaml": false,
     "**/*.ini": true,
+    "**/.esphome/": true,
+    "**/3rd_party/": true,
+    "**/bluetooth_hub/": true,
+    "**/irrigation/": true,
+    "**/plug*/": true,
+    "**/pool/": true,
+    "**/shelly*/": true,
+    "**/sonoff*/": true,
     "**/lib": true,
     "**/src": true,
     "**/._*": true,
     "**/.DS_Store": true,
-    "**/secrets.yaml": true
+    "secrets.yaml": true
   }
 }
