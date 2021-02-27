@@ -4,7 +4,7 @@ name: build
 
 # yamllint disable-line rule:truthy
 on:
-  push:
+  - push
 
 jobs:
   esphome:
@@ -23,8 +23,8 @@ jobs:
           pip list
           esphome version
       - name: Copy secrets file into configuration folder
-        run: cp -R ./.stubs/* ./config/esphome/
+        run: cp -R ./.stubs/* ./
       - name: Run esphome on all files
         # yamllint disable rule:line-length
         run: |
-          for file in $(find ./config/esphome -type f -name "*.yaml" -not -name "secrets.yaml"); do esphome "${file}" config; done
+          for file in $(find ./ -type f -name "*.yaml" -not -name "secrets.yaml"); do esphome "${file}" config; done
