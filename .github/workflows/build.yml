@@ -27,4 +27,4 @@ jobs:
       - name: Run esphome on all files
         # yamllint disable rule:line-length
         run: |
-          for file in $(find ./ -type f -name "*.yaml" -not -name "secrets.yaml"); do esphome "${file}" config; done
+          for file in $(find ./ -type f -name "*.yaml" -not -name "secrets.yaml" -path "common"); do esphome "${file}" config; done
