@@ -5,8 +5,8 @@
 substitutions:
   project: Upstairs Bathroom Exhaust
   id: shelly1_02
-  humidity_difference_threshold: "12.5"   # Difference between house humidity and bathroom humidity.
-  countdown_duration: "600"               # 600 seconds = 10 minutes
+  default_humidity_diff_threshold: "10"   # Difference between house humidity and bathroom humidity.
+  countdown_duration: "600"             # 600 seconds = 10 minutes
 
   <<: !include common/substitutions/gpio/shelly1.yaml
 
@@ -47,21 +47,32 @@ globals:
     restore_value: no
     initial_value: "0"
 
+  - id: humidity_diff
+    type: float
+    restore_value: no
+    initial_value: "0.1"
+
+  - id: diff_trigger
+    type: float
+    restore_value: no
+    initial_value: $default_humidity_diff_threshold
+
 # Update the countdown timers every 5 seconds.
 interval:
   - interval: 5s
     then:
-      # - logger.log: "5 seconds have passed."
-      # - logger.log:
-      #     format: "remaining_time: %s"
-      #     args: ['id(remaining_time)']
+      #- lambda: ESP_LOGD("interval", "diff %.1f > trigger %.1f", id(humidity_diff), id(diff_trigger));
 
       - if: # Humidity threshold trigger.
           condition:
             and:
-              - sensor.in_range:
-                  id: humidity_difference
-                  above: $humidity_difference_threshold
+              # If the difference is greater than the trigger.
+              - lambda: return id(humidity_diff) > id(diff_trigger);
+              # - sensor.in_range:
+              #     id: humidity_diff
+              #     above: $default_humidity_diff_threshold
+              
+              # and the fan is off.
               - switch.is_off: relay
           then: 
             - switch.turn_on: relay
@@ -87,13 +98,36 @@ interval:
 
           # Time to turn off the relay.
           else:
-            - switch.turn_off: relay
+            - if: # Decrement the countdown.
+                condition:
+                  - switch.is_on: relay
+                then:
+                  - switch.turn_off: relay
 
 sensor:
   # Measure the difference between the house humidity and bathroom humidity from Home Assistant.
   - platform: homeassistant
-    id: humidity_difference
+    id: humidity_diff_ha
+    internal: true
+    accuracy_decimals: 1
     entity_id: sensor.upstairs_bathroom_humidity_difference
+    on_value:
+      then:
+        - globals.set:
+            id: humidity_diff
+            value: !lambda return id(humidity_diff_ha).state;
+
+  # Retrieve the difference trigger value from the Home Assistant UI.
+  - platform: homeassistant
+    id: diff_trigger_ha
+    internal: true
+    accuracy_decimals: 1
+    entity_id: input_number.upstairs_bath_humidity_trigger
+    on_value:
+      then:
+        - globals.set:
+            id: diff_trigger
+            value: !lambda return id(diff_trigger_ha).state;
 
   - platform: template
     id: countdown
