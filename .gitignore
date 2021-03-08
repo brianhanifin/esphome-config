@@ -6,10 +6,10 @@
 3rd_party/
 bluetooth_hub/
 irrigation/
-plug*/
+plug??/
 pool/
-shelly*/
-sonoff*/
+shelly?_??/
+sonoff_*_??/
 
 # Ignore subfolders.
 **/lib
@@ -19,6 +19,3 @@ sonoff*/
 ._*
 .DS_Store
 /secrets.yaml
-
-# Specific includes.
-#!.stubs/secrets.yaml
