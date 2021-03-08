@@ -42,10 +42,22 @@ esp32_ble_tracker:
 #             }
 
 sensor:
-  # - platform: ble_rssi
-  #   mac_address: $temp1_mac
-  #   id: $temp1
-  #   name: $temp1_upper
+  - platform: ble_rssi
+    mac_address: $temp1_mac
+    id: ${temp1}_rssi
+    name: $temp1 RSSI
+  - platform: xiaomi_lywsdcgq
+    mac_address: $temp1_mac
+    temperature:
+      name: $temp1_upper Temperature
+      id: ${temp1}_temperature
+    humidity:
+      name: $temp1_upper Humidity
+      id: ${temp1}_humidity
+    battery_level:
+      name: ${temp1} Battery
+      id: ${temp1}_battery
+
   # - platform: ble_rssi
   #   mac_address: $plant1_mac
   #   id: $plant1
@@ -71,144 +83,135 @@ sensor:
   #   id: $plant6
   #   name: $plant6_upper
 
-  - platform: xiaomi_lywsdcgq
-    mac_address: $temp1_mac
-    temperature:
-      name: $temp1_upper Temperature
-      id: ${temp1}_temperature
-    humidity:
-      name: $temp1_upper Humidity
-      id: ${temp1}_humidity
+  # - platform: xiaomi_hhccjcy01
+  #   mac_address: $plant1_mac
+  #   temperature:
+  #     name: $plant1_upper Temperature
+  #     id: ${plant1}_temperature
+  #     filters:
+  #     - filter_out: nan
+  #     - lambda: return x * (9.0/5.0) + 32.0;
+  #     unit_of_measurement: "°F"
+  #   moisture:
+  #     name: $plant1_upper Moisture
+  #     icon: mdi:water-percent
+  #     id: ${plant1}_moisture
+  #     filters:
+  #     - filter_out: nan
+  #   illuminance:
+  #     name: $plant1_upper Illuminance
+  #     id: ${plant1}_illuminance
+  #     filters:
+  #     - filter_out: nan
+  #   conductivity:
+  #     name: $plant1_upper Soil Conductivity
+  #     id: ${plant1}_conductivity
+  #     filters:
+  #     - filter_out: nan
 
-  - platform: xiaomi_hhccjcy01
-    mac_address: $plant1_mac
-    temperature:
-      name: $plant1_upper Temperature
-      id: ${plant1}_temperature
-      filters:
-      - filter_out: nan
-      - lambda: return x * (9.0/5.0) + 32.0;
-      unit_of_measurement: "°F"
-    moisture:
-      name: $plant1_upper Moisture
-      icon: mdi:water-percent
-      id: ${plant1}_moisture
-      filters:
-      - filter_out: nan
-    illuminance:
-      name: $plant1_upper Illuminance
-      id: ${plant1}_illuminance
-      filters:
-      - filter_out: nan
-    conductivity:
-      name: $plant1_upper Soil Conductivity
-      id: ${plant1}_conductivity
-      filters:
-      - filter_out: nan
+  # - platform: xiaomi_hhccjcy01
+  #   mac_address: $plant2_mac
+  #   temperature:
+  #     name: $plant2_upper Temperature
+  #     id: ${plant2}_temperature
+  #     filters:
+  #     - filter_out: nan
+  #     - lambda: return x * (9.0/5.0) + 32.0;
+  #     unit_of_measurement: "°F"
+  #   moisture:
+  #     name: $plant2_upper Moisture
+  #     icon: mdi:water-percent
+  #     id: ${plant2}_moisture
+  #     filters:
+  #     - filter_out: nan
+  #   illuminance:
+  #     name: $plant2_upper Illuminance
+  #     id: ${plant2}_illuminance
+  #     filters:
+  #     - filter_out: nan
+  #   conductivity:
+  #     name: $plant2_upper Soil Conductivity
+  #     id: ${plant2}_conductivity
+  #     filters:
+  #     - filter_out: nan
 
-  - platform: xiaomi_hhccjcy01
-    mac_address: $plant2_mac
-    temperature:
-      name: $plant2_upper Temperature
-      id: ${plant2}_temperature
-      filters:
-      - filter_out: nan
-      - lambda: return x * (9.0/5.0) + 32.0;
-      unit_of_measurement: "°F"
-    moisture:
-      name: $plant2_upper Moisture
-      icon: mdi:water-percent
-      id: ${plant2}_moisture
-      filters:
-      - filter_out: nan
-    illuminance:
-      name: $plant2_upper Illuminance
-      id: ${plant2}_illuminance
-      filters:
-      - filter_out: nan
-    conductivity:
-      name: $plant2_upper Soil Conductivity
-      id: ${plant2}_conductivity
-      filters:
-      - filter_out: nan
+  # - platform: xiaomi_hhccjcy01
+  #   mac_address: $plant3_mac
+  #   temperature:
+  #     name: $plant3_upper Temperature
+  #     id: ${plant3}_temperature
+  #     filters:
+  #     - filter_out: nan
+  #     - lambda: return x * (9.0/5.0) + 32.0;
+  #     unit_of_measurement: "°F"
+  #   moisture:
+  #     name: $plant3_upper Moisture
+  #     icon: mdi:water-percent
+  #     id: ${plant3}_moisture
+  #     filters:
+  #     - filter_out: nan
+  #   illuminance:
+  #     name: $plant3_upper Illuminance
+  #     id: ${plant3}_illuminance
+  #     filters:
+  #     - filter_out: nan
+  #   conductivity:
+  #     name: $plant3_upper Soil Conductivity
+  #     id: ${plant3}_conductivity
+  #     filters:
+  #     - filter_out: nan
 
-  - platform: xiaomi_hhccjcy01
-    mac_address: $plant3_mac
-    temperature:
-      name: $plant3_upper Temperature
-      id: ${plant3}_temperature
-      filters:
-      - filter_out: nan
-      - lambda: return x * (9.0/5.0) + 32.0;
-      unit_of_measurement: "°F"
-    moisture:
-      name: $plant3_upper Moisture
-      icon: mdi:water-percent
-      id: ${plant3}_moisture
-      filters:
-      - filter_out: nan
-    illuminance:
-      name: $plant3_upper Illuminance
-      id: ${plant3}_illuminance
-      filters:
-      - filter_out: nan
-    conductivity:
-      name: $plant3_upper Soil Conductivity
-      id: ${plant3}_conductivity
-      filters:
-      - filter_out: nan
+  # - platform: xiaomi_hhccjcy01
+  #   mac_address: $plant4_mac
+  #   temperature:
+  #     name: $plant4_upper Temperature
+  #     id: ${plant4}_temperature
+  #     filters:
+  #     - filter_out: nan
+  #     - lambda: return x * (9.0/5.0) + 32.0;
+  #     unit_of_measurement: "°F"
+  #   moisture:
+  #     name: $plant4_upper Moisture
+  #     icon: mdi:water-percent
+  #     id: ${plant4}_moisture
+  #     filters:
+  #     - filter_out: nan
+  #   illuminance:
+  #     name: $plant4_upper Illuminance
+  #     id: ${plant4}_illuminance
+  #     filters:
+  #     - filter_out: nan
+  #   conductivity:
+  #     name: $plant4_upper Soil Conductivity
+  #     id: ${plant4}_conductivity
+  #     filters:
+  #     - filter_out: nan
 
-  - platform: xiaomi_hhccjcy01
-    mac_address: $plant4_mac
-    temperature:
-      name: $plant4_upper Temperature
-      id: ${plant4}_temperature
-      filters:
-      - filter_out: nan
-      - lambda: return x * (9.0/5.0) + 32.0;
-      unit_of_measurement: "°F"
-    moisture:
-      name: $plant4_upper Moisture
-      icon: mdi:water-percent
-      id: ${plant4}_moisture
-      filters:
-      - filter_out: nan
-    illuminance:
-      name: $plant4_upper Illuminance
-      id: ${plant4}_illuminance
-      filters:
-      - filter_out: nan
-    conductivity:
-      name: $plant4_upper Soil Conductivity
-      id: ${plant4}_conductivity
-      filters:
-      - filter_out: nan
-
-  - platform: xiaomi_hhccjcy01
-    mac_address: $plant5_mac
-    temperature:
-      name: $plant5_upper Temperature
-      id: ${plant5}_temperature
-      filters:
-      - filter_out: nan
-      - lambda: return x * (9.0/5.0) + 32.0;
-      unit_of_measurement: "°F"
-    moisture:
-      name: $plant5_upper Moisture
-      icon: mdi:water-percent
-      id: ${plant5}_moisture
-      filters:
-      - filter_out: nan
-    illuminance:
-      name: $plant5_upper Illuminance
-      id: ${plant5}_illuminance
-      filters:
-      - filter_out: nan
-    conductivity:
-      name: $plant5_upper Soil Conductivity
-      id: ${plant5}_conductivity
-      filters:
-      - filter_out: nan
+  # - platform: xiaomi_hhccjcy01
+  #   mac_address: $plant5_mac
+  #   temperature:
+  #     name: $plant5_upper Temperature
+  #     id: ${plant5}_temperature
+  #     filters:
+  #     - filter_out: nan
+  #     - lambda: return x * (9.0/5.0) + 32.0;
+  #     unit_of_measurement: "°F"
+  #   moisture:
+  #     name: $plant5_upper Moisture
+  #     icon: mdi:water-percent
+  #     id: ${plant5}_moisture
+  #     filters:
+  #     - filter_out: nan
+  #   illuminance:
+  #     name: $plant5_upper Illuminance
+  #     id: ${plant5}_illuminance
+  #     filters:
+  #     - filter_out: nan
+  #   conductivity:
+  #     name: $plant5_upper Soil Conductivity
+  #     id: ${plant5}_conductivity
+  #     filters:
+  #     - filter_out: nan
 
   # - platform: xiaomi_hhccjcy01
   #   mac_address: $plant6_mac
