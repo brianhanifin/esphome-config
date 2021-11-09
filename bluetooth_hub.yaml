@@ -13,7 +13,7 @@ wifi:
   password: !secret wifi_pass
 
   # Using these as a precaution to ensure solid WiFi connectivity.
-  power_save_mode: none
+  #power_save_mode: none # Disable for ESP32
   manual_ip:
     static_ip: 10.0.20.13
     gateway: 10.0.20.1
@@ -42,21 +42,115 @@ esp32_ble_tracker:
 #             }
 
 sensor:
-  - platform: ble_rssi
-    mac_address: $temp1_mac
-    id: ${temp1}_rssi
-    name: $temp1 RSSI
-  - platform: xiaomi_lywsdcgq
-    mac_address: $temp1_mac
+  # LYWSD03MMC $4 Temperature Sensors
+  # Flashed with custom firmware in Chrome at https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html
+  # Settings:
+  #   * "F"
+  #   * Advertising Type: "Mi"
+  #   * Click [Show all mi keys] to get MAC Address
+  
+  # Bedroom
+  - platform: xiaomi_lywsd03mmc
+    mac_address: "A4:C1:38:23:ED:41"
+    bindkey: "5119b4890c72bc66121278dca55df431"
     temperature:
-      name: $temp1_upper Temperature
-      id: ${temp1}_temperature
+      name: "Bedroom Temperature"
     humidity:
-      name: $temp1_upper Humidity
-      id: ${temp1}_humidity
+      name: "Bedroom Humidity"
     battery_level:
-      name: ${temp1} Battery
-      id: ${temp1}_battery
+      name: "Bedroom Temperature Battery"
+  - platform: ble_rssi
+    mac_address: "A4:C1:38:23:ED:41"
+    name: "Bedroom Temperature BLE Signal"
+  
+  # Family Room
+  - platform: xiaomi_lywsd03mmc
+    mac_address: "A4:C1:38:BF:98:48"
+    bindkey: "9e58510b59d2f2d386a15c3ae60bf59a"
+    temperature:
+      name: "Family Room Temperature"
+    humidity:
+      name: "Family Room Humidity"
+    battery_level:
+      name: "Family Room Temperature Battery"
+  - platform: ble_rssi
+    mac_address: "A4:C1:38:BF:98:48"
+    name: "Family Room Temperature BLE Signal"
+
+  # Garage
+  - platform: xiaomi_lywsd03mmc
+    mac_address: "A4:C1:38:FA:00:36"
+    bindkey: "98d8225995fdfb2a4d5110b08e2e0fc6"
+    temperature:
+      name: "Garage Temperature"
+    humidity:
+      name: "Garage Humidity"
+    battery_level:
+      name: "Garage Temperature Battery"
+  - platform: ble_rssi
+    mac_address: "A4:C1:38:FA:00:36"
+    name: "Garage Temperature BLE Signal"
+
+  # Guest Room
+  - platform: xiaomi_lywsd03mmc
+    mac_address: "A4:C1:38:03:EE:C7"
+    bindkey: "9e58510b59d2f2d386a15c3ae60bf59a"
+    temperature:
+      name: "Guest Room Temperature"
+    humidity:
+      name: "Guest Room Humidity"
+    battery_level:
+      name: "Guest Room Temperature Battery"
+  - platform: ble_rssi
+    mac_address: "A4:C1:38:03:EE:C7"
+    name: "Guest Room Temperature BLE Signal"
+
+  # Lucas' Room
+  - platform: xiaomi_lywsd03mmc
+    mac_address: "A4:C1:38:4C:90:2D"
+    bindkey: "04d5ad30b0853cadaee54053f0032cee"
+    temperature:
+      name: "Lucas Room Temperature"
+    humidity:
+      name: "Lucas Room Humidity"
+    battery_level:
+      name: "Lucas Room Temperature Battery"
+  - platform: ble_rssi
+    mac_address: "A4:C1:38:4C:90:2D"
+    name: "Lucas Room Temperature BLE Signal"
+
+  # Upstairs Bathroom
+  - platform: xiaomi_lywsd03mmc
+    mac_address: "A4:C1:38:0E:D8:EA"
+    bindkey: "a25c346de94877c61f3a948eb76ceab9"
+    temperature:
+      name: "Upstairs Bathroom Temperature"
+    humidity:
+      name: "Upstairs Bathroom Humidity"
+    battery_level:
+      name: "Upstairs Bathroom Temperature Battery"
+  - platform: ble_rssi
+    mac_address: "A4:C1:38:0E:D8:EA"
+    name: "Upstairs Bathroom Temperature BLE Signal"
+
+
+
+  # Old round Celsius-only Sensor
+  # - platform: ble_rssi
+  #   mac_address: $temp1_mac
+  #   id: ${temp1}_rssi
+  #   name: $temp1 BLE Signal
+  # - platform: xiaomi_lywsdcgq
+  #   mac_address: $temp1_mac
+  #   temperature:
+  #     name: $temp1_upper Temperature
+  #     id: ${temp1}_temperature
+  #   humidity:
+  #     name: $temp1_upper Humidity
+  #     id: ${temp1}_humidity
+  #   battery_level:
+  #     name: ${temp1} Battery
+  #     id: ${temp1}_battery
 
   # - platform: ble_rssi
   #   mac_address: $plant1_mac

@@ -110,7 +110,7 @@ binary_sensor:
 
 
 switch:
-  #- !include common/switches/restart.yaml
+  - !include common/switches/restart.yaml
 
   # ============================================================================= #
   # Virtual Zone Switches which toggle the relay, and store the current state.
