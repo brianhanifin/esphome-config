@@ -104,6 +104,23 @@ interval:
                 then:
                   - switch.turn_off: relay
 
+number:
+  - platform: template
+    name: Upstairs Bathroom Humidity Trigger
+    id: diff_trigger_ui
+    icon: "mdi:water-percent"
+    optimistic: true
+    initial_value: $default_humidity_diff_threshold
+    restore_value: true
+    min_value: 5
+    max_value: 15
+    step: 0.5
+    set_action:
+      then:
+        - globals.set:
+            id: diff_trigger
+            value: !lambda return id(diff_trigger_ui).state;
+
 sensor:
   # Measure the difference between the house humidity and bathroom humidity from Home Assistant.
   - platform: homeassistant
@@ -118,16 +135,16 @@ sensor:
             value: !lambda return id(humidity_diff_ha).state;
 
   # Retrieve the difference trigger value from the Home Assistant UI.
-  - platform: homeassistant
-    id: diff_trigger_ha
-    internal: true
-    accuracy_decimals: 1
-    entity_id: input_number.upstairs_bath_humidity_trigger
-    on_value:
-      then:
-        - globals.set:
-            id: diff_trigger
-            value: !lambda return id(diff_trigger_ha).state;
+  # - platform: homeassistant
+  #   id: diff_trigger_ha
+  #   internal: true
+  #   accuracy_decimals: 1
+  #   entity_id: input_number.upstairs_bath_humidity_trigger
+  #   on_value:
+  #     then:
+  #       - globals.set:
+  #           id: diff_trigger
+  #           value: !lambda return id(diff_trigger_ha).state;
 
   - platform: template
     id: countdown
