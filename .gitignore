@@ -4,7 +4,7 @@
 # Ignore project folders
 .esphome/
 3rd_party/
-bluetooth_hub/
+bluetooth??/
 irrigation/
 plug??/
 pool/
@@ -19,3 +19,4 @@ sonoff_*_??/
 ._*
 .DS_Store
 /secrets.yaml
+partitions.csv
