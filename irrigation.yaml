@@ -30,7 +30,7 @@ wifi:
   reboot_timeout: 0s
 
   # Using these as a precaution to ensure solid WiFi connectivity.
-  power_save_mode: none
+  #power_save_mode: none
   manual_ip:
     static_ip: 10.0.20.18
     gateway: 10.0.20.1
@@ -107,6 +107,108 @@ binary_sensor:
       max_length: 350ms
       then:
         - switch.toggle: irrigation_zone2
+
+
+number:
+  - platform: template
+    name: Irrigation Zone1 Duration
+    id: irrigation_zone1_duration
+    #id: ui_zone1_duration
+    icon: mdi:timer-sand
+    optimistic: true
+    initial_value: 0
+    restore_value: true
+    min_value: 0
+    max_value: 60
+    step: 1
+    # set_action:
+    #   then:
+    #     - globals.set:
+    #         id: irrigation_zone1_duration
+    #         value: !lambda return id(ui_zone1_duration).state;
+
+  - platform: template
+    name: Irrigation Zone2 Duration
+    id: irrigation_zone2_duration
+    #id: ui_zone2_duration
+    icon: mdi:timer-sand
+    optimistic: true
+    initial_value: 0
+    restore_value: true
+    min_value: 0
+    max_value: 60
+    step: 1
+    # set_action:
+    #   then:
+    #     - globals.set:
+    #         id: irrigation_zone2_duration
+    #         value: !lambda return id(ui_zone2_duration).state;
+
+
+sensor:
+  - !include common/sensors/uptime.yaml
+  - !include common/sensors/wifi_signal.yaml
+
+  # ============================================================================= #
+  # Countdown sensors.
+  - platform: template
+    name: Irrigation Zone1 Remaining
+    id: irrigation_zone1_remaining
+    lambda: "return 0;"
+    accuracy_decimals: 0
+    unit_of_measurement: minutes
+    icon: mdi:timer-outline
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: return id(remaining_time1) == 0;
+            then:
+              - switch.turn_off: relay1
+
+  - platform: template
+    name: Irrigation Zone2 Remaining
+    id: irrigation_zone2_remaining
+    lambda: "return 0;"
+    accuracy_decimals: 0
+    unit_of_measurement: minutes
+    icon: mdi:timer-outline
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: return id(remaining_time2) == 0;
+            then:
+              - switch.turn_off: relay2
+
+  # ============================================================================= #
+  # Retrieve durations settings from the Home Assistant UI.
+  # - platform: homeassistant
+  #   id: ui_zone1_duration
+  #   entity_id: input_number.irrigation_zone1_duration
+  #   on_value:
+  #     then:
+  #     - sensor.template.publish:
+  #         id: irrigation_zone1_duration
+  #         state: !lambda return id(ui_zone1_duration).state;
+
+  # - platform: homeassistant
+  #   id: ui_zone2_duration
+  #   entity_id: input_number.irrigation_zone2_duration
+  #   on_value:
+  #     then:
+  #     - sensor.template.publish:
+  #         id: irrigation_zone2_duration
+  #         state: !lambda return id(ui_zone2_duration).state;
+
+  # ============================================================================= #
+  # Store durations.
+  # - platform: template
+  #   name: Irrigation Zone1 Duration
+  #   id: irrigation_zone1_duration
+  # - platform: template
+  #   name: Irrigation Zone2 Duration
+  #   id: irrigation_zone2_duration
 
 
 switch:
@@ -201,72 +303,6 @@ switch:
             id: irrigation_zone2_next
             state: !lambda |-
               return update_next_runtime(id(irrigation_zone2_times).state);
-
-
-sensor:
-  - !include common/sensors/uptime.yaml
-  - !include common/sensors/wifi_signal.yaml
-
-  # ============================================================================= #
-  # Retrieve durations settings from the Home Assistant UI.
-  - platform: homeassistant
-    id: ui_zone1_duration
-    entity_id: input_number.irrigation_zone1_duration
-    on_value:
-      then:
-      - sensor.template.publish:
-          id: irrigation_zone1_duration
-          state: !lambda return id(ui_zone1_duration).state;
-
-  - platform: homeassistant
-    id: ui_zone2_duration
-    entity_id: input_number.irrigation_zone2_duration
-    on_value:
-      then:
-      - sensor.template.publish:
-          id: irrigation_zone2_duration
-          state: !lambda return id(ui_zone2_duration).state;
-
-  # ============================================================================= #
-  # Store durations.
-  - platform: template
-    name: Irrigation Zone1 Duration
-    id: irrigation_zone1_duration
-  - platform: template
-    name: Irrigation Zone2 Duration
-    id: irrigation_zone2_duration
-
-  # ============================================================================= #
-  # Countdown sensors.
-  - platform: template
-    name: Irrigation Zone1 Remaining
-    id: irrigation_zone1_remaining
-    lambda: "return 0;"
-    accuracy_decimals: 0
-    unit_of_measurement: minutes
-    icon: mdi:timer-outline
-    on_value:
-      then:
-        - if:
-            condition:
-              lambda: return id(remaining_time1) == 0;
-            then:
-              - switch.turn_off: relay1
-
-  - platform: template
-    name: Irrigation Zone2 Remaining
-    id: irrigation_zone2_remaining
-    lambda: "return 0;"
-    accuracy_decimals: 0
-    unit_of_measurement: minutes
-    icon: mdi:timer-outline
-    on_value:
-      then:
-        - if:
-            condition:
-              lambda: return id(remaining_time2) == 0;
-            then:
-              - switch.turn_off: relay2
 
 
 text_sensor:
