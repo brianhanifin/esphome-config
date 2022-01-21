@@ -39,7 +39,7 @@ binary_sensor:
   # Use motion detection to keep fan running.
   - platform: homeassistant
     id: motion
-    entity_id: binary_sensor.upstairs_bathroom_motion
+    entity_id: binary_sensor.upstairs_bathroom_presence
 
 globals:
   - id: remaining_time

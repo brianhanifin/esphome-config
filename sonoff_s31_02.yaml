@@ -3,7 +3,7 @@
 #
 substitutions:
   project: Washing Machine Power Monitor
-  id: sonoff_s31_02
+  id: powerwasher
 
   <<: !include common/substitutions/gpio/sonoff.yaml
 

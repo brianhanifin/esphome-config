@@ -3,7 +3,7 @@
 #
 substitutions:
   project: Sonoff POW 01
-  id: sonoff_pow_01
+  id: sonoffpow01
 
   <<: !include common/substitutions/gpio/sonoff.yaml
 

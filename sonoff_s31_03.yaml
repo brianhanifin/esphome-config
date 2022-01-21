@@ -3,7 +3,7 @@
 #
 substitutions:
   project: Prusa
-  id: sonoff_s31_03
+  id: powerprusa
 
   <<: !include common/substitutions/gpio/sonoff.yaml
 

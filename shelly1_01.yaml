@@ -3,8 +3,8 @@
 # Location: Dining Room Light Switch
 #
 substitutions:
-  project: Shelly1 01
-  id: shelly1_01
+  project: Dining Room Light Switch
+  id: switchdining
 
   hass_light: light.dining_room
 

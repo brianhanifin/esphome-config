@@ -3,7 +3,7 @@
 #
 substitutions:
   project: Family Room Soundbar
-  id: sonoff_s31_05
+  id: plugsoundbar
 
   <<: !include common/substitutions/gpio/sonoff.yaml
 

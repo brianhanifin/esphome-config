@@ -3,7 +3,7 @@
 #
 substitutions:
   project: Dryer Power Monitor
-  id: sonoff_s31_04
+  id: powerdryer
 
   <<: !include common/substitutions/gpio/sonoff.yaml
 
