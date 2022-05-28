@@ -1,10 +1,62 @@
 ---
-# Luntak brand Tuya Plug
+# Luntak brand Tuya Plug (plug02)
 #
 substitutions:
-  project: Plug06
-  id: plug06
+  project: WirelessAP2 power cycler
+  id: wirelessap2_power_cycler
+  hostname: plug-wirelessap2
+  ip: 10.0.20.66
 
   <<: !include common/substitutions/gpio/tuya_plug.yaml
 
-<<: !include common/templates/plug.yaml
+esphome:
+  name: $hostname
+  platform: ESP8266
+  board: esp01_1m
+
+  <<: !include common/esphome/leds/status.yaml
+
+
+<<: !include common/wifi_ip.yaml
+<<: !include common/ota.yaml
+<<: !include common/api.yaml
+<<: !include common/logger.yaml
+
+binary_sensor:
+  - !include common/binary_sensors/power_button_inverted.yaml
+
+light:
+  - !include common/lights/status_led.yaml
+
+output:
+  - !include common/outputs/status_led.yaml
+
+switch:
+  - platform: gpio
+    name: $project
+    id: relay
+    pin: $relay_gpio
+    internal: true
+    restore_mode: ALWAYS_ON # On at boot
+    # Restart after slight delay.
+    on_turn_off:
+      - delay: 15s
+      - switch.turn_on: relay
+
+  - !include common/switches/relay_status_led.yaml
+
+text_sensor:
+  - platform: homeassistant
+    id: online_state
+    internal: true
+    entity_id: device_tracker.wirelessap2
+    on_value:
+      #- lambda: ESP_LOGD("online_state", "%s", id(online_state));
+      - if:
+          condition:
+            for:
+              time: 1min
+              condition:
+                - lambda: return id(online_state).state == "not_home";
+          then:
+            - switch.turn_off: relay

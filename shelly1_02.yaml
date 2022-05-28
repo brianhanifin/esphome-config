@@ -1,12 +1,13 @@
 ---
 # Shelly 2 Power Module
-# Location: Upstairs Bathroom
+# Location: Upstairs bathroom
 #
 substitutions:
-  project: Upstairs Bathroom Exhaust
-  id: shelly1_02
-  default_humidity_diff_threshold: "10"   # Difference between house humidity and bathroom humidity.
-  countdown_duration: "600"             # 600 seconds = 10 minutes
+  project: Upstairs bathroom exhaust
+  id: switchexhaust
+  hostname: switch-exhaust
+  default_humidity_delta_threshold: "1.0"  # Difference between house humidity and bathroom humidity.
+  timeout_duration: "600"                  # 600 seconds = 10 minutes
 
   <<: !include common/substitutions/gpio/shelly1.yaml
 
@@ -14,11 +15,19 @@ substitutions:
 <<: !include common/common.yaml
 
 script:
-  - id: countdown_restart
+  - id: timeout_restart
     then:
+      #- if:
+      #    condition:
+      #      - lambda: return id(remaining_time) < $timeout_duration;
+      #    then:
       - globals.set:
           id: remaining_time
-          value: !lambda return $countdown_duration;
+          value: !lambda return $timeout_duration;
+
+      - sensor.template.publish:
+          id: timeout
+          state: !lambda return id(remaining_time);
 
 binary_sensor:
   # Physical Toggle Switch. Monitor for switch position changes internally. Do not expose to Home Assistant.
@@ -32,9 +41,13 @@ binary_sensor:
     on_state:
       - switch.toggle: relay
 
-      - text_sensor.template.publish:
-          id: trigger
-          state: PHYSICAL
+      - if:
+          condition:
+            - lambda: return id(diagnostic_last_trigger).state != "PHYSICAL";
+          then:
+            - text_sensor.template.publish:
+                id: diagnostic_last_trigger
+                state: PHYSICAL
 
   # Use motion detection to keep fan running.
   - platform: homeassistant
@@ -47,121 +60,138 @@ globals:
     restore_value: no
     initial_value: "0"
 
-  - id: humidity_diff
-    type: float
-    restore_value: no
-    initial_value: "0.1"
+  # - id: delta_trigger
+  #   type: float
+  #   restore_value: no
+  #   initial_value: $default_humidity_delta_threshold
 
-  - id: diff_trigger
-    type: float
-    restore_value: no
-    initial_value: $default_humidity_diff_threshold
-
-# Update the countdown timers every 5 seconds.
+# Update the timeout timers every 5 seconds.
 interval:
   - interval: 5s
     then:
-      #- lambda: ESP_LOGD("interval", "diff %.1f > trigger %.1f", id(humidity_diff), id(diff_trigger));
+      #- lambda: ESP_LOGD("interval", "diff %.1f > trigger %.1f ", id(humidity_delta).state, id(delta_trigger).state);
 
       - if: # Humidity threshold trigger.
           condition:
             and:
               # If the difference is greater than the trigger.
-              - lambda: return id(humidity_diff) > id(diff_trigger);
-              # - sensor.in_range:
-              #     id: humidity_diff
-              #     above: $default_humidity_diff_threshold
-              
+              - lambda: return id(humidity_delta).state > id(delta_trigger).state;
+
               # and the fan is off.
               - switch.is_off: relay
-          then: 
+          then:
             - switch.turn_on: relay
 
-      - if: # When motion is active, restart the countdown.
+            - if:
+                condition:
+                  - lambda: return id(diagnostic_last_trigger).state != "THRESHOLD";
+                then:
+                  - text_sensor.template.publish:
+                      id: diagnostic_last_trigger
+                      state: THRESHOLD
+
+      - if: # Restart the timeout if motion is active.
           condition:
             - binary_sensor.is_on: motion
           then:
-            - script.execute: countdown_restart
+            - script.execute: timeout_restart
 
-      - if: # Decrement the countdown.
+      - if: # Decrement the timeout.
           condition:
             and:
               - lambda: return id(remaining_time) > 0;
+              - lambda: return id(humidity_delta).state <= id(delta_trigger).state;
               - switch.is_on: relay
           then:
             - globals.set:
                 id: remaining_time
                 value: !lambda return id(remaining_time) -= 5;
             - sensor.template.publish:
-                id: countdown
+                id: timeout
                 state: !lambda return id(remaining_time);
 
           # Time to turn off the relay.
           else:
-            - if: # Decrement the countdown.
+            - if:
                 condition:
                   - switch.is_on: relay
                 then:
-                  - switch.turn_off: relay
+                  - if:
+                      condition:
+                        # If the difference is greater than the trigger.
+                        - lambda: return id(humidity_delta).state > id(delta_trigger).state;
+                      then:
+                        - script.execute: timeout_restart
+                      else:
+                        # Only turn the fan off if the humidity difference is below the trigger.
+                        - switch.turn_off: relay
 
 number:
   - platform: template
-    name: Upstairs Bathroom Humidity Trigger
-    id: diff_trigger_ui
-    icon: "mdi:water-percent"
+    name: "$project humidity delta trigger"
+    #id: delta_trigger_ui
+    id: delta_trigger
+    icon: "mdi:rocket-launch"
+    entity_category: config
+    unit_of_measurement: "%"
     optimistic: true
-    initial_value: $default_humidity_diff_threshold
+    initial_value: $default_humidity_delta_threshold
     restore_value: true
-    min_value: 5
-    max_value: 15
+    min_value: 0.5
+    max_value: 15.0
     step: 0.5
-    set_action:
-      then:
-        - globals.set:
-            id: diff_trigger
-            value: !lambda return id(diff_trigger_ui).state;
+    # set_action:
+    #   then:
+    #     - globals.set:
+    #         id: delta_trigger
+    #         value: !lambda return id(delta_trigger_ui).state;
 
 sensor:
-  # Measure the difference between the house humidity and bathroom humidity from Home Assistant.
+  - platform: template
+    id: timeout
+    name: "$project timeout"
+    accuracy_decimals: 0
+    icon: "mdi:sort-clock-ascending"
+    entity_category: diagnostic
+    unit_of_measurement: "seconds"
+
   - platform: homeassistant
-    id: humidity_diff_ha
+    id: humidity_24h
     internal: true
     accuracy_decimals: 1
-    entity_id: sensor.upstairs_bathroom_humidity_difference
+    entity_id: sensor.upstairs_bathroom_humidity_average_last_24_hours
+    unit_of_measurement: "%"
+
+  - platform: homeassistant
+    id: humidity_now
+    internal: true
+    accuracy_decimals: 1
+    entity_id: sensor.upstairs_bathroom_humidity
+    unit_of_measurement: "%"
     on_value:
       then:
-        - globals.set:
-            id: humidity_diff
-            value: !lambda return id(humidity_diff_ha).state;
-
-  # Retrieve the difference trigger value from the Home Assistant UI.
-  # - platform: homeassistant
-  #   id: diff_trigger_ha
-  #   internal: true
-  #   accuracy_decimals: 1
-  #   entity_id: input_number.upstairs_bath_humidity_trigger
-  #   on_value:
-  #     then:
-  #       - globals.set:
-  #           id: diff_trigger
-  #           value: !lambda return id(diff_trigger_ha).state;
+        - sensor.template.publish:
+            id: humidity_delta
+            state: !lambda return id(humidity_now).state - id(humidity_24h).state;
 
   - platform: template
-    id: countdown
-    name: "$project: Countdown"
-    accuracy_decimals: 0
-    icon: "mdi:camera-timer"
+    id: humidity_delta
+    name: "$project humidity delta"
+    accuracy_decimals: 1
+    icon: "mdi:delta"
+    entity_category: diagnostic
+    unit_of_measurement: "%"
 
 switch:
   - platform: gpio
     id: relay
     pin: $relay_gpio
     on_turn_on:
-      # Start the countdown timer.
-      - script.execute: countdown_restart
+      # Start the timeout timer.
+      - script.execute: timeout_restart
     on_turn_off:
       - sensor.template.publish:
-          id: countdown
+          id: timeout
           state: 0
 
   - platform: template
@@ -172,15 +202,22 @@ switch:
       return (id(relay).state);
     turn_on_action:
       - switch.turn_on: relay
-      
-      - text_sensor.template.publish:
-          id: trigger
-          state: VIRTUAL
+
+
+      - if:
+          condition:
+            - lambda: return id(diagnostic_last_trigger).state != "VIRTUAL";
+          then:
+            - text_sensor.template.publish:
+                id: diagnostic_last_trigger
+                state: VIRTUAL
     turn_off_action:
       - switch.turn_off: relay
 
 text_sensor:
   # Trigger states: PHYSICAL, VIRTUAL (UI or Alexa/Google), THRESHOLD
   - platform: template
-    id: trigger
-    name: "$project: Last Trigger"
+    id: diagnostic_last_trigger
+    name: "$project last trigger"
+    disabled_by_default: true
+    entity_category: diagnostic

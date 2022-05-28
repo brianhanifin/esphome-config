@@ -1,7 +1,8 @@
 ---
 platform: gpio
-name:  $project
+#name: $project
 id: relay
 pin: $relay_gpio
+internal: true
 # disable following line to enable restore_mode: RESTORE_DEFAULT_OFF (default)
 #restore_mode: ALWAYS_OFF

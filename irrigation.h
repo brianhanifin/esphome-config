@@ -1,11 +1,10 @@
 #include "esphome.h"
-using namespace std;
 
 // Declare functions before calling them.
-bool scheduled_runtime(string);
-string update_next_runtime(string);
+bool scheduled_runtime(std::string);
+std::string update_next_runtime(std::string);
 
-bool scheduled_runtime(string time) {
+bool scheduled_runtime(std::string time) {
   // Retrieve the current time.
   auto time_now = id(homeassistant_time).now();
   int time_hour = time_now.hour;
@@ -19,10 +18,10 @@ bool scheduled_runtime(string time) {
   return (time_hour == next_hour && time_minute == next_minute);
 }
 
-string update_next_runtime(string time_list) {
+std::string update_next_runtime(std::string time_list) {
   // Initialize variables.
-  vector<string> times;
-  vector<string> next_time;
+  std::vector<std::string> times;
+  std::vector<std::string> next_time;
   char * token;
 
   // Split the list of run times into an array.
@@ -51,7 +50,7 @@ string update_next_runtime(string time_list) {
 
   // Compare the list of times with the current time, and return the next in the list.
   //ESP_LOGD("update_next_runtime", "now: %i:%i", hour, minute);
-  for (string time : times) {
+  for (std::string time : times) {
     // Retrieve the next scheduled time from the list.
     next_hour = atoi(time.substr(0,2).c_str());
     next_minute = atoi(time.substr(3,2).c_str());

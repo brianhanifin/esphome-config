@@ -4,7 +4,21 @@
 substitutions:
   project: Plug01
   id: plug01
+  hostname: plug01
 
   <<: !include common/substitutions/gpio/tuya_plug.yaml
 
 <<: !include common/templates/plug.yaml
+
+# esphome:
+#   name: $hostname
+#   platform: ESP8266
+#   board: esp01_1m
+
+# wifi:
+#   ssid: !secret wifi_ssid
+#   password: !secret wifi_pass
+#   use_address: plug01.local
+
+# <<: !include common/ota.yaml
+# <<: !include common/api.yaml

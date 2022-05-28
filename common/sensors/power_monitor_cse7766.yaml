@@ -1,8 +1,33 @@
 ---
 platform: cse7766
 current:
-  name: $project Current
+  name: $project current
+  entity_category: diagnostic
+  disabled_by_default: true
+  device_class: current
+  state_class: measurement
+  unit_of_measurement: A
+  accuracy_decimals: 1
 voltage:
-  name: $project Voltage
+  name: $project voltage
+  entity_category: diagnostic
+  disabled_by_default: true
+  device_class: voltage
+  state_class: measurement
+  unit_of_measurement: V
+  accuracy_decimals: 0
 power:
-  name: $project Power
+  name: $project power
+  entity_category: diagnostic
+  device_class: energy
+  state_class: measurement
+  unit_of_measurement: W
+  accuracy_decimals: 0
+energy:
+  name: $project energy
+  device_class: energy
+  state_class: total_increasing
+  unit_of_measurement: kWh
+  accuracy_decimals: 1
+  # filters:
+  #   - multiply: 0.001

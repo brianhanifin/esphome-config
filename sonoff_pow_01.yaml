@@ -4,6 +4,7 @@
 substitutions:
   project: Sonoff POW 01
   id: sonoffpow01
+  hostname: sonoffpow01
 
   <<: !include common/substitutions/gpio/sonoff.yaml
 

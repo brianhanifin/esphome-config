@@ -2,3 +2,4 @@
 platform: wifi_signal
 name: $project WiFi Signal
 update_interval: 30s
+entity_category: diagnostic

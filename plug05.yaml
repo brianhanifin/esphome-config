@@ -2,32 +2,11 @@
 # Luntak brand Tuya Plug
 #
 substitutions:
-  project: Hot Water Pump
-  id: plug05
+  project: Hot water pump
+  id: hot_water_pump
+  hostname: plug-pump
   off_delay: 10min
 
   <<: !include common/substitutions/gpio/tuya_plug.yaml
 
-esphome:
-  name: ${id}
-  platform: ESP8266
-  board: esp01_1m
-  
-  <<: !include common/esphome/leds/status.yaml
-
-<<: !include common/wifi.yaml
-<<: !include common/ota.yaml
-<<: !include common/api.yaml
-<<: !include common/logger.yaml
-
-binary_sensor:
-  - !include common/binary_sensors/power_button_inverted.yaml
-
-light:
-  - !include common/lights/status_led.yaml
-
-output:
-  - !include common/outputs/status_led.yaml
-
-switch:
-  - !include common/switches/relay_status_led_off_delay.yaml
+<<: !include common/templates/plug_led_off_delay.yaml

@@ -6,13 +6,16 @@
 # Personal project goals: https://github.com/brianhanifin/Home-Assistant-Config/issues/37
 #
 substitutions:
-  project: Irrigation Controller
+  project: Irrigation controller
   id: irrigation
+  hostname: irrigation
+  zone1_name: Front yard drip
+  zone2_name: Pool filler
 
   <<: !include common/substitutions/gpio/sonoff4chpror2.yaml
 
 esphome:
-  name: $id
+  name: $hostname
   platform: ESP8266
   board: esp01_1m
   includes:
@@ -111,10 +114,12 @@ binary_sensor:
 
 number:
   - platform: template
-    name: Irrigation Zone1 Duration
+    name: $zone1_name duration
     id: irrigation_zone1_duration
     #id: ui_zone1_duration
     icon: mdi:timer-sand
+    #mode: slider #auto, box, slider
+    #unit_of_measurement: minutes
     optimistic: true
     initial_value: 0
     restore_value: true
@@ -128,10 +133,12 @@ number:
     #         value: !lambda return id(ui_zone1_duration).state;
 
   - platform: template
-    name: Irrigation Zone2 Duration
+    name: $zone2_name duration
     id: irrigation_zone2_duration
     #id: ui_zone2_duration
     icon: mdi:timer-sand
+    #mode: slider #auto, box, slider
+    #unit_of_measurement: minutes
     optimistic: true
     initial_value: 0
     restore_value: true
@@ -152,7 +159,7 @@ sensor:
   # ============================================================================= #
   # Countdown sensors.
   - platform: template
-    name: Irrigation Zone1 Remaining
+    name: $zone1_name remaining
     id: irrigation_zone1_remaining
     lambda: "return 0;"
     accuracy_decimals: 0
@@ -167,7 +174,7 @@ sensor:
               - switch.turn_off: relay1
 
   - platform: template
-    name: Irrigation Zone2 Remaining
+    name: $zone2_name remaining
     id: irrigation_zone2_remaining
     lambda: "return 0;"
     accuracy_decimals: 0
@@ -204,10 +211,10 @@ sensor:
   # ============================================================================= #
   # Store durations.
   # - platform: template
-  #   name: Irrigation Zone1 Duration
+  #   name: $zone1_name duration
   #   id: irrigation_zone1_duration
   # - platform: template
-  #   name: Irrigation Zone2 Duration
+  #   name: $zone2_name duration
   #   id: irrigation_zone2_duration
 
 
@@ -215,9 +222,9 @@ switch:
   - !include common/switches/restart.yaml
 
   # ============================================================================= #
-  # Virtual Zone Switches which toggle the relay, and store the current state.
+  # Virtual zone Switches which toggle the relay, and store the current state.
   - platform: template
-    name: Irrigation Zone1
+    name: $zone1_name
     id: irrigation_zone1
     lambda: return id(relay1).state;
     optimistic: true
@@ -232,7 +239,7 @@ switch:
       - switch.turn_off: relay1
 
   - platform: template
-    name: Irrigation Zone2
+    name: $zone2_name
     id: irrigation_zone2
     lambda: return id(relay2).state;
     optimistic: true
@@ -331,7 +338,7 @@ text_sensor:
   # ============================================================================= #
   # Store time lists.
   - platform: template
-    name: Irrigation Zone1 Times
+    name: $zone1_name times
     id: irrigation_zone1_times
     on_value:
       then:
@@ -342,7 +349,7 @@ text_sensor:
               return update_next_runtime(id(irrigation_zone1_times).state);
 
   - platform: template
-    name: Irrigation Zone2 Times
+    name: $zone2_name times
     id: irrigation_zone2_times
     on_value:
       then:
@@ -355,10 +362,10 @@ text_sensor:
   # ============================================================================= #
   # Set the next scheduled time.
   - platform: template
-    name: Irrigation Zone1 Next
+    name: $zone1_name next
     id: irrigation_zone1_next
   - platform: template
-    name: Irrigation Zone2 Next
+    name: $zone2_name next
     id: irrigation_zone2_next
 
 

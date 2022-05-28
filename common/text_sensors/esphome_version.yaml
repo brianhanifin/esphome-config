@@ -1,3 +1,4 @@
 ---
 platform: version
 name: $project Esphome Version
+entity_category: diagnostic

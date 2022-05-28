@@ -2,8 +2,9 @@
 # Sonoff S31 Power Monitoring Plug
 #
 substitutions:
-  project: Dryer Power Monitor
+  project: Dryer power monitor
   id: powerdryer
+  hostname: power-dryer
 
   <<: !include common/substitutions/gpio/sonoff.yaml
 

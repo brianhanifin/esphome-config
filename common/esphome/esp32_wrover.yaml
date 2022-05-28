@@ -1,5 +1,5 @@
 ---
 esphome:
-  name: $id
+  name: $hostname
   platform: ESP32
   board: esp-wrover-kit

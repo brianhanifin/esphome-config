@@ -2,9 +2,10 @@
 # Luntak brand Tuya Plug
 #
 substitutions:
-  project: Plug03
-  id: plug03
+  project: Sound machine
+  id: sound_machine
+  hostname: plug-sound
 
   <<: !include common/substitutions/gpio/tuya_plug.yaml
 
-<<: !include common/templates/plug.yaml
+<<: !include common/templates/plug_no_status_lights.yaml

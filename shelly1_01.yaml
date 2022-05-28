@@ -1,12 +1,13 @@
 ---
 # Shelly 1 Power Module
-# Location: Dining Room Light Switch
+# Location: Dining room light wall switch
 #
 substitutions:
-  project: Dining Room Light Switch
+  project: Dining room light wall switch
   id: switchdining
+  hostname: switch-dining
 
-  hass_light: light.dining_room
+  light_entity: light.dining_room
 
   <<: !include common/substitutions/gpio/shelly1.yaml
 
@@ -14,7 +15,7 @@ substitutions:
 <<: !include common/common.yaml
 
 script:
-  - id: hass_light_toggle
+  - id: light_entity_toggle
     then:
       if:
         condition:
@@ -26,17 +27,17 @@ script:
               then:
                 # Turn the relay back on and turn on the light.
                 - switch.turn_on: relay
-                
+
                 - homeassistant.service:
                     service: light.turn_on
                     data:
-                      entity_id: $hass_light
+                      entity_id: $light_entity
               else:
                 # Have Home Assistant toggle the light.
                 - homeassistant.service:
                     service: light.toggle
                     data:
-                      entity_id: $hass_light
+                      entity_id: $light_entity
         else:
           # When HA is unavailable, toggle the relay.
           - switch.toggle: relay
@@ -45,13 +46,16 @@ binary_sensor:
   - platform: gpio
     pin:
       number: $button_gpio
-    name: $project Wall Switch
+    name: $project
     id: button
+    internal: true
+    #disabled_by_default: true
+    #entity_category: diagnostic
     filters:
       - delayed_on: 10ms
       - delayed_off: 10ms
     on_state:
-      - script.execute: hass_light_toggle
+      - script.execute: light_entity_toggle
 
 switch:
   <<: !include common/switches/relay_always_on_internal.yaml

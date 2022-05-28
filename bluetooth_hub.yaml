@@ -1,9 +1,10 @@
 ---
-# ESP32 Bluetooth Hub
+# ESP32 BLE Hub
 #
 substitutions:
-  project: BLE Hub
+  project: Bluetooth Hub
   id: bluetooth_hub
+  hostname: bluetooth-hub
   <<: !include common/substitutions/bluetooth_hub.yaml
 
 <<: !include common/esphome/esp32_wrover.yaml
@@ -11,6 +12,7 @@ substitutions:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
+  #use_address: bluetooth_hub.local
 
   # Using these as a precaution to ensure solid WiFi connectivity.
   #power_save_mode: none # Disable for ESP32
@@ -31,7 +33,7 @@ esp32_ble_tracker:
 
 # text_sensor:
 #   - platform: ble_scanner
-#     name: Bluetooth Hub Scanner
+#     name: Bluetooth hub scanner
 #     id: bluetooth_hub_scanner
 #     on_value:
 #       then:
@@ -42,163 +44,335 @@ esp32_ble_tracker:
 #             }
 
 sensor:
-  # LYWSD03MMC $4 Temperature Sensors
+  # LYWSD03MMC $4 temperature Sensors
   # Flashed with custom firmware in Chrome at https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html
   # Settings:
   #   * "F"
   #   * Advertising Type: "Mi"
   #   * Click [Show all mi keys] to get MAC Address
-  
+
   # Bedroom
   - platform: xiaomi_lywsd03mmc
     mac_address: "A4:C1:38:23:ED:41"
     bindkey: "5119b4890c72bc66121278dca55df431"
     temperature:
-      name: "Bedroom Temperature"
+      name: "Bedroom temperature"
+      device_class: temperature
+      state_class: measurement
+      unit_of_measurement: "°C"
+      accuracy_decimals: 1
+
     humidity:
-      name: "Bedroom Humidity"
+      name: "Bedroom humidity"
+      device_class: humidity
+      state_class: measurement
+      unit_of_measurement: "%"
+      accuracy_decimals: 0
+
     battery_level:
-      name: "Bedroom Temperature Battery"
+      name: "Bedroom temperature battery"
+      entity_category: diagnostic
+      device_class: battery
+      state_class: measurement
+      unit_of_measurement: "%"
+      accuracy_decimals: 0
+
   - platform: ble_rssi
     mac_address: "A4:C1:38:23:ED:41"
-    name: "Bedroom Temperature BLE Signal"
-  
+    name: "Bedroom temperature signal"
+    disabled_by_default: true
+    entity_category: diagnostic
+    device_class: signal_strength
+    state_class: measurement
+    unit_of_measurement: dBm
+    accuracy_decimals: 0
+
   # Family Room
   - platform: xiaomi_lywsd03mmc
     mac_address: "A4:C1:38:BF:98:48"
     bindkey: "9e58510b59d2f2d386a15c3ae60bf59a"
     temperature:
-      name: "Family Room Temperature"
+      name: "Family Room temperature"
+      device_class: temperature
+      state_class: measurement
+      unit_of_measurement: "°C"
+      accuracy_decimals: 1
+
     humidity:
-      name: "Family Room Humidity"
+      name: "Family Room humidity"
+      device_class: humidity
+      state_class: measurement
+      unit_of_measurement: "%"
+      accuracy_decimals: 0
+
     battery_level:
-      name: "Family Room Temperature Battery"
+      name: "Family Room temperature battery"
+      entity_category: diagnostic
+      device_class: battery
+      state_class: measurement
+      unit_of_measurement: "%"
+      accuracy_decimals: 0
+
   - platform: ble_rssi
     mac_address: "A4:C1:38:BF:98:48"
-    name: "Family Room Temperature BLE Signal"
+    name: "Family Room temperature signal"
+    disabled_by_default: true
+    entity_category: diagnostic
+    device_class: signal_strength
+    state_class: measurement
+    unit_of_measurement: dBm
+    accuracy_decimals: 0
 
   # Garage
   - platform: xiaomi_lywsd03mmc
     mac_address: "A4:C1:38:FA:00:36"
     bindkey: "98d8225995fdfb2a4d5110b08e2e0fc6"
     temperature:
-      name: "Garage Temperature"
+      name: "Garage temperature"
+      device_class: temperature
+      state_class: measurement
+      unit_of_measurement: "°C"
+      accuracy_decimals: 1
+
     humidity:
-      name: "Garage Humidity"
+      name: "Garage humidity"
+      device_class: humidity
+      state_class: measurement
+      unit_of_measurement: "%"
+      accuracy_decimals: 0
+
     battery_level:
-      name: "Garage Temperature Battery"
+      name: "Garage temperature battery"
+      entity_category: diagnostic
+      device_class: battery
+      state_class: measurement
+      unit_of_measurement: "%"
+      accuracy_decimals: 0
+
   - platform: ble_rssi
     mac_address: "A4:C1:38:FA:00:36"
-    name: "Garage Temperature BLE Signal"
+    name: "Garage temperature signal"
+    disabled_by_default: true
+    entity_category: diagnostic
+    device_class: signal_strength
+    state_class: measurement
+    unit_of_measurement: dBm
+    accuracy_decimals: 0
 
-  # Guest Room
+  # Guest room
   - platform: xiaomi_lywsd03mmc
     mac_address: "A4:C1:38:03:EE:C7"
     bindkey: "9e58510b59d2f2d386a15c3ae60bf59a"
     temperature:
-      name: "Guest Room Temperature"
+      name: "Guest room temperature"
+      device_class: temperature
+      state_class: measurement
+      unit_of_measurement: "°C"
+      accuracy_decimals: 1
+
     humidity:
-      name: "Guest Room Humidity"
+      name: "Guest room humidity"
+      device_class: humidity
+      state_class: measurement
+      unit_of_measurement: "%"
+      accuracy_decimals: 0
+
     battery_level:
-      name: "Guest Room Temperature Battery"
+      name: "Guest room temperature battery"
+      entity_category: diagnostic
+      device_class: battery
+      state_class: measurement
+      unit_of_measurement: "%"
+      accuracy_decimals: 0
+
   - platform: ble_rssi
     mac_address: "A4:C1:38:03:EE:C7"
-    name: "Guest Room Temperature BLE Signal"
+    name: "Guest room temperature signal"
+    disabled_by_default: true
+    entity_category: diagnostic
+    device_class: signal_strength
+    state_class: measurement
+    unit_of_measurement: dBm
+    accuracy_decimals: 0
 
   # Lucas' Room
   - platform: xiaomi_lywsd03mmc
     mac_address: "A4:C1:38:4C:90:2D"
     bindkey: "04d5ad30b0853cadaee54053f0032cee"
     temperature:
-      name: "Lucas Room Temperature"
+      name: "Lucas room temperature"
+      device_class: temperature
+      state_class: measurement
+      unit_of_measurement: "°C"
+      accuracy_decimals: 1
+
     humidity:
-      name: "Lucas Room Humidity"
+      name: "Lucas room humidity"
+      device_class: humidity
+      state_class: measurement
+      unit_of_measurement: "%"
+      accuracy_decimals: 0
+
     battery_level:
-      name: "Lucas Room Temperature Battery"
+      name: "Lucas room temperature battery"
+      entity_category: diagnostic
+      device_class: battery
+      state_class: measurement
+      unit_of_measurement: "%"
+      accuracy_decimals: 0
+
   - platform: ble_rssi
     mac_address: "A4:C1:38:4C:90:2D"
-    name: "Lucas Room Temperature BLE Signal"
+    name: "Lucas room temperature signal"
+    disabled_by_default: true
+    entity_category: diagnostic
+    device_class: signal_strength
+    state_class: measurement
+    unit_of_measurement: dBm
+    accuracy_decimals: 0
 
-  # Upstairs Bathroom
+  # Upstairs bathroom
   - platform: xiaomi_lywsd03mmc
     mac_address: "A4:C1:38:0E:D8:EA"
     bindkey: "a25c346de94877c61f3a948eb76ceab9"
     temperature:
-      name: "Upstairs Bathroom Temperature"
+      name: "Upstairs bathroom temperature"
+      device_class: temperature
+      state_class: measurement
+      unit_of_measurement: "°C"
+      accuracy_decimals: 1
+
     humidity:
-      name: "Upstairs Bathroom Humidity"
+      name: "Upstairs bathroom humidity"
+      device_class: humidity
+      state_class: measurement
+      unit_of_measurement: "%"
+      accuracy_decimals: 0
+
     battery_level:
-      name: "Upstairs Bathroom Temperature Battery"
+      name: "Upstairs bathroom temperature battery"
+      entity_category: diagnostic
+      device_class: battery
+      state_class: measurement
+      unit_of_measurement: "%"
+      accuracy_decimals: 0
+
   - platform: ble_rssi
     mac_address: "A4:C1:38:0E:D8:EA"
-    name: "Upstairs Bathroom Temperature BLE Signal"
-
+    name: "Upstairs bathroom temperature signal"
+    disabled_by_default: true
+    entity_category: diagnostic
+    device_class: signal_strength
+    state_class: measurement
+    unit_of_measurement: dBm
+    accuracy_decimals: 0
 
 
   # Old round Celsius-only Sensor
   # - platform: ble_rssi
   #   mac_address: $temp1_mac
   #   id: ${temp1}_rssi
-  #   name: $temp1 BLE Signal
+  #   name: $temp1 signal
   # - platform: xiaomi_lywsdcgq
   #   mac_address: $temp1_mac
   #   temperature:
-  #     name: $temp1_upper Temperature
+  #     name: $temp1_upper temperature
   #     id: ${temp1}_temperature
   #   humidity:
-  #     name: $temp1_upper Humidity
+  #     name: $temp1_upper humidity
   #     id: ${temp1}_humidity
   #   battery_level:
-  #     name: ${temp1} Battery
+  #     name: ${temp1} battery
   #     id: ${temp1}_battery
 
   # - platform: ble_rssi
   #   mac_address: $plant1_mac
   #   id: $plant1
   #   name: $plant1_upper
+  #   disabled_by_default: true
+  #   entity_category: diagnostic
+  #   device_class: signal_strength
+  #   state_class: measurement
+  #   unit_of_measurement: dBm
+  #   accuracy_decimals: 0
+
   # - platform: ble_rssi
   #   mac_address: $plant2_mac
   #   id: $plant2
   #   name: $plant2_upper
+  #   disabled_by_default: true
+  #   entity_category: diagnostic
+  #   device_class: signal_strength
+  #   state_class: measurement
+  #   unit_of_measurement: dBm
+  #   accuracy_decimals: 0
+
   # - platform: ble_rssi
   #   mac_address: $plant3_mac
   #   id: $plant3
   #   name: $plant3_upper
+  #   disabled_by_default: true
+  #   entity_category: diagnostic
+  #   device_class: signal_strength
+  #   state_class: measurement
+  #   unit_of_measurement: dBm
+  #   accuracy_decimals: 0
+
   # - platform: ble_rssi
   #   mac_address: $plant4_mac
   #   id: $plant4
   #   name: $plant4_upper
+  #   disabled_by_default: true
+  #   entity_category: diagnostic
+  #   device_class: signal_strength
+  #   state_class: measurement
+  #   unit_of_measurement: dBm
+  #   accuracy_decimals: 0
+
   # - platform: ble_rssi
   #   mac_address: $plant5_mac
   #   id: $plant5
   #   name: $plant5_upper
+  #   disabled_by_default: true
+  #   entity_category: diagnostic
+  #   device_class: signal_strength
+  #   state_class: measurement
+  #   unit_of_measurement: dBm
+  #   accuracy_decimals: 0
+
   # - platform: ble_rssi
   #   mac_address: $plant6_mac
   #   id: $plant6
   #   name: $plant6_upper
+  #   disabled_by_default: true
+  #   entity_category: diagnostic
+  #   device_class: signal_strength
+  #   state_class: measurement
+  #   unit_of_measurement: dBm
+  #   accuracy_decimals: 0
 
   # - platform: xiaomi_hhccjcy01
   #   mac_address: $plant1_mac
   #   temperature:
-  #     name: $plant1_upper Temperature
+  #     name: $plant1_upper temperature
   #     id: ${plant1}_temperature
   #     filters:
   #     - filter_out: nan
   #     - lambda: return x * (9.0/5.0) + 32.0;
-  #     unit_of_measurement: "°F"
+  #     unit_of_measurement: "°C"
   #   moisture:
-  #     name: $plant1_upper Moisture
+  #     name: $plant1_upper moisture
   #     icon: mdi:water-percent
   #     id: ${plant1}_moisture
   #     filters:
   #     - filter_out: nan
   #   illuminance:
-  #     name: $plant1_upper Illuminance
+  #     name: $plant1_upper illuminance
   #     id: ${plant1}_illuminance
   #     filters:
   #     - filter_out: nan
   #   conductivity:
-  #     name: $plant1_upper Soil Conductivity
+  #     name: $plant1_upper soil conductivity
   #     id: ${plant1}_conductivity
   #     filters:
   #     - filter_out: nan
@@ -206,25 +380,25 @@ sensor:
   # - platform: xiaomi_hhccjcy01
   #   mac_address: $plant2_mac
   #   temperature:
-  #     name: $plant2_upper Temperature
+  #     name: $plant2_upper temperature
   #     id: ${plant2}_temperature
   #     filters:
   #     - filter_out: nan
   #     - lambda: return x * (9.0/5.0) + 32.0;
-  #     unit_of_measurement: "°F"
+  #     unit_of_measurement: "°C"
   #   moisture:
-  #     name: $plant2_upper Moisture
+  #     name: $plant2_upper moisture
   #     icon: mdi:water-percent
   #     id: ${plant2}_moisture
   #     filters:
   #     - filter_out: nan
   #   illuminance:
-  #     name: $plant2_upper Illuminance
+  #     name: $plant2_upper illuminance
   #     id: ${plant2}_illuminance
   #     filters:
   #     - filter_out: nan
   #   conductivity:
-  #     name: $plant2_upper Soil Conductivity
+  #     name: $plant2_upper soil conductivity
   #     id: ${plant2}_conductivity
   #     filters:
   #     - filter_out: nan
@@ -232,25 +406,25 @@ sensor:
   # - platform: xiaomi_hhccjcy01
   #   mac_address: $plant3_mac
   #   temperature:
-  #     name: $plant3_upper Temperature
+  #     name: $plant3_upper temperature
   #     id: ${plant3}_temperature
   #     filters:
   #     - filter_out: nan
   #     - lambda: return x * (9.0/5.0) + 32.0;
-  #     unit_of_measurement: "°F"
+  #     unit_of_measurement: "°C"
   #   moisture:
-  #     name: $plant3_upper Moisture
+  #     name: $plant3_upper moisture
   #     icon: mdi:water-percent
   #     id: ${plant3}_moisture
   #     filters:
   #     - filter_out: nan
   #   illuminance:
-  #     name: $plant3_upper Illuminance
+  #     name: $plant3_upper illuminance
   #     id: ${plant3}_illuminance
   #     filters:
   #     - filter_out: nan
   #   conductivity:
-  #     name: $plant3_upper Soil Conductivity
+  #     name: $plant3_upper soil conductivity
   #     id: ${plant3}_conductivity
   #     filters:
   #     - filter_out: nan
@@ -258,25 +432,25 @@ sensor:
   # - platform: xiaomi_hhccjcy01
   #   mac_address: $plant4_mac
   #   temperature:
-  #     name: $plant4_upper Temperature
+  #     name: $plant4_upper temperature
   #     id: ${plant4}_temperature
   #     filters:
   #     - filter_out: nan
   #     - lambda: return x * (9.0/5.0) + 32.0;
-  #     unit_of_measurement: "°F"
+  #     unit_of_measurement: "°C"
   #   moisture:
-  #     name: $plant4_upper Moisture
+  #     name: $plant4_upper moisture
   #     icon: mdi:water-percent
   #     id: ${plant4}_moisture
   #     filters:
   #     - filter_out: nan
   #   illuminance:
-  #     name: $plant4_upper Illuminance
+  #     name: $plant4_upper illuminance
   #     id: ${plant4}_illuminance
   #     filters:
   #     - filter_out: nan
   #   conductivity:
-  #     name: $plant4_upper Soil Conductivity
+  #     name: $plant4_upper soil conductivity
   #     id: ${plant4}_conductivity
   #     filters:
   #     - filter_out: nan
@@ -284,25 +458,25 @@ sensor:
   # - platform: xiaomi_hhccjcy01
   #   mac_address: $plant5_mac
   #   temperature:
-  #     name: $plant5_upper Temperature
+  #     name: $plant5_upper temperature
   #     id: ${plant5}_temperature
   #     filters:
   #     - filter_out: nan
   #     - lambda: return x * (9.0/5.0) + 32.0;
-  #     unit_of_measurement: "°F"
+  #     unit_of_measurement: "°C"
   #   moisture:
-  #     name: $plant5_upper Moisture
+  #     name: $plant5_upper moisture
   #     icon: mdi:water-percent
   #     id: ${plant5}_moisture
   #     filters:
   #     - filter_out: nan
   #   illuminance:
-  #     name: $plant5_upper Illuminance
+  #     name: $plant5_upper illuminance
   #     id: ${plant5}_illuminance
   #     filters:
   #     - filter_out: nan
   #   conductivity:
-  #     name: $plant5_upper Soil Conductivity
+  #     name: $plant5_upper soil conductivity
   #     id: ${plant5}_conductivity
   #     filters:
   #     - filter_out: nan
@@ -310,25 +484,25 @@ sensor:
   # - platform: xiaomi_hhccjcy01
   #   mac_address: $plant6_mac
   #   temperature:
-  #     name: $plant6_upper Temperature
+  #     name: $plant6_upper temperature
   #     id: ${plant6}_temperature
   #     filters:
   #     - filter_out: nan
   #     - lambda: return x * (9.0/5.0) + 32.0;
-  #     unit_of_measurement: "°F"
+  #     unit_of_measurement: "°C"
   #   moisture:
-  #     name: $plant6_upper Moisture
+  #     name: $plant6_upper moisture
   #     icon: mdi:water-percent
   #     id: ${plant6}_moisture
   #     filters:
   #     - filter_out: nan
   #   illuminance:
-  #     name: $plant6_upper Illuminance
+  #     name: $plant6_upper illuminance
   #     id: ${plant6}_illuminance
   #     filters:
   #     - filter_out: nan
   #   conductivity:
-  #     name: $plant6_upper Soil Conductivity
+  #     name: $plant6_upper soil conductivity
   #     id: ${plant6}_conductivity
   #     filters:
   #     - filter_out: nan

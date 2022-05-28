@@ -4,6 +4,7 @@
 substitutions:
   project: Sonoff S31 06
   id: sonoff_s31_06
+  hostname: sonoff_s31_06
 
   <<: !include common/substitutions/gpio/sonoff.yaml
 

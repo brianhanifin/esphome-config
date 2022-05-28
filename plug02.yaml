@@ -1,10 +1,11 @@
 ---
-# Luntak brand Tuya Plug
+# Luntak brand Tuya Plug (plug02)
 #
 substitutions:
-  project: Plug02
+  project: plug02
   id: plug02
+  hostname: plug02
 
   <<: !include common/substitutions/gpio/tuya_plug.yaml
 
-<<: !include common/templates/plug_no_status_lights.yaml
+<<: !include common/templates/plug.yaml

@@ -1,6 +1,6 @@
 ---
 # https://esphome.io/devices/nodemcu_esp32.html
 esphome:
-  name: $id
+  name: $hostname
   platform: ESP32
   board: nodemcu-32s

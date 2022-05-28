@@ -2,8 +2,9 @@
 # Luntak brand Tuya Plug
 #
 substitutions:
-  project: Plug04
-  id: plug04
+  project: Printer
+  id: printer
+  hostname: plug-printer
 
   <<: !include common/substitutions/gpio/tuya_plug.yaml
 

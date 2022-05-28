@@ -2,8 +2,9 @@
 # Sonoff S31 Power Monitoring Plug, Always On
 #
 substitutions:
-  project: Washing Machine Power Monitor
+  project: Washing machine power monitor
   id: powerwasher
+  hostname: power-washer
 
   <<: !include common/substitutions/gpio/sonoff.yaml
 
