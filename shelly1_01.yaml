@@ -49,7 +49,6 @@ binary_sensor:
       number: $button_gpio
     name: $project
     id: button
-    internal: true
     #disabled_by_default: true
     #entity_category: diagnostic
     filters:
