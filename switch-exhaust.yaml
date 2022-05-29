@@ -1,35 +1,21 @@
 ---
-# Shelly 2 Power Module
-# Location: Upstairs bathroom
+# Device: Shelly 1 PM
+# Location: Upstairs bathroom in wall
 #
 substitutions:
   project: Upstairs bathroom exhaust
   id: switchexhaust
   hostname: switch-exhaust
-  ip: 10.0.20.15
+  ip: 10.0.20.50
 
   default_humidity_delta_threshold: "1.0"  # Difference between house humidity and bathroom humidity.
   timeout_duration: "600"                  # 600 seconds = 10 minutes
+  max_temp: "70.0"                         # Max power measurement board temperature in °C.
 
-  <<: !include common/substitutions/gpio/shelly1.yaml
+  <<: !include common/substitutions/gpio/shelly1pm.yaml
 
 <<: !include common/esphome/esp8266.yaml
 <<: !include common/common.yaml
-
-script:
-  - id: timeout_restart
-    then:
-      #- if:
-      #    condition:
-      #      - lambda: return id(remaining_time) < $timeout_duration;
-      #    then:
-      - globals.set:
-          id: remaining_time
-          value: !lambda return $timeout_duration;
-
-      - sensor.template.publish:
-          id: timeout
-          state: !lambda return id(remaining_time);
 
 binary_sensor:
   # Physical Toggle Switch. Monitor for switch position changes internally. Do not expose to Home Assistant.
@@ -37,9 +23,11 @@ binary_sensor:
     pin:
       number: $button_gpio
     id: button_toggle
+    # filters:
+    #   - delayed_on: 10ms
+    #   - delayed_off: 10ms
     filters:
-      - delayed_on: 10ms
-      - delayed_off: 10ms
+      - delayed_on_off: 50ms
     on_state:
       - switch.toggle: relay
 
@@ -56,9 +44,9 @@ binary_sensor:
     id: motion
     entity_id: binary_sensor.upstairs_bathroom_presence
 
-button:
-  - platform: restart
-    id: restart_button
+# button:
+#   - platform: restart
+#     id: restart_button
 
 globals:
   - id: remaining_time
@@ -72,15 +60,15 @@ globals:
   #   initial_value: $default_humidity_delta_threshold
 
 interval:
-  - interval: 2min
-    then:
-      - if:
-          condition:
-            not:
-              api.connected:
-          then:
-            logger.log: Home Assistant API has been disconnected for 15 minutes.
-  #           #button.press: restart_button
+  # - interval: 5min
+  #   then:
+  #     - if:
+  #         condition:
+  #           not:
+  #             api.connected:
+  #         then:
+  #           logger.log: Home Assistant API has been disconnected for 5 minutes.
+  # #           #button.press: restart_button
 
   - interval: 5s
     then:
@@ -161,12 +149,27 @@ number:
     #         id: delta_trigger
     #         value: !lambda return id(delta_trigger_ui).state;
 
+script:
+  - id: timeout_restart
+    then:
+      #- if:
+      #    condition:
+      #      - lambda: return id(remaining_time) < $timeout_duration;
+      #    then:
+      - globals.set:
+          id: remaining_time
+          value: !lambda return $timeout_duration;
+
+      - sensor.template.publish:
+          id: timeout
+          state: !lambda return id(remaining_time);
+
 sensor:
   - platform: template
     id: timeout
     name: "$project timeout"
-    accuracy_decimals: 0
     icon: "mdi:sort-clock-ascending"
+    accuracy_decimals: 0
     entity_category: diagnostic
     unit_of_measurement: "seconds"
 
@@ -196,6 +199,71 @@ sensor:
     icon: "mdi:delta"
     entity_category: diagnostic
     unit_of_measurement: "%"
+
+  ## Power monitoring
+  - platform: hlw8012
+    cf_pin: GPIO05
+    cf1_pin: GPIO13 # not used because it is not available on the 1PM but it is needed to compile
+    sel_pin: GPIO14 # not used because it is not available on the 1PM but it is needed to compile
+    power:
+      name: "$project power"
+      id: "shelly1pm_power"
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      accuracy_decimals: 0
+      filters:
+        # Map from sensor -> measured value
+        - calibrate_linear:
+            - 0.0 -> 1.0
+            - 110.33186 -> 20.62
+            - 131.01909 -> 24.32
+            - 341.33920 -> 62.08
+            - 5561.41553 -> 1000.0
+            - 2975.51221 -> 535.7
+            - 9612.66309 -> 1720.0
+            - 14891.35352 -> 2679.0
+        # Make everything below 2W appear as just 0W.
+        - lambda: if (x < 2) return 0; else return x;
+    update_interval: 10s
+
+  - platform: total_daily_energy
+    name: "$project daily energy"
+    power_id: "shelly1pm_power"
+    device_class: energy
+    state_class: measurement
+    unit_of_measurement: kWh
+    filters:
+      - multiply: 0.001
+
+  - platform: ntc
+    sensor: temp_resistance_reading
+    name: "$project temperature"
+    accuracy_decimals: 1
+    device_class: temperature
+    unit_of_measurement: "°C"
+    entity_category: diagnostic
+    calibration:
+      b_constant: 3350
+      reference_resistance: 10kOhm
+      reference_temperature: 298.15K
+    on_value_range:
+      - above: $max_temp
+        then:
+          - homeassistant.event:
+              event: esphome.overheat
+              data:
+                title: "$project has overheated."
+
+  - platform: resistance
+    id: temp_resistance_reading
+    sensor: temp_analog_reading
+    configuration: DOWNSTREAM
+    resistor: 32kOhm
+
+  - platform: adc
+    id: temp_analog_reading
+    pin: A0
 
 switch:
   - platform: gpio
@@ -235,3 +303,9 @@ text_sensor:
     name: "$project last trigger"
     disabled_by_default: true
     entity_category: diagnostic
+
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    timezone: America/Los_Angeles
