@@ -5,6 +5,7 @@ substitutions:
   project: Glowforge power monitor
   id: powerglowforge
   hostname: power-glowforge
+  ip: 10.0.20.43
 
   <<: !include common/substitutions/gpio/sonoff.yaml
 

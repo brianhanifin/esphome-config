@@ -6,6 +6,8 @@ substitutions:
   project: Upstairs bathroom exhaust
   id: switchexhaust
   hostname: switch-exhaust
+  ip: 10.0.20.15
+
   default_humidity_delta_threshold: "1.0"  # Difference between house humidity and bathroom humidity.
   timeout_duration: "600"                  # 600 seconds = 10 minutes
 

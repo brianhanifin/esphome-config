@@ -17,10 +17,7 @@ esphome:
   <<: !include common/esphome/leds/status.yaml
 
 
-<<: !include common/wifi_ip.yaml
-<<: !include common/ota.yaml
-<<: !include common/api.yaml
-<<: !include common/logger.yaml
+<<: !include common/common.yaml
 
 binary_sensor:
   - !include common/binary_sensors/power_button_inverted.yaml

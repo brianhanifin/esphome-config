@@ -5,6 +5,7 @@ substitutions:
   project: Prusa power monitor
   id: prusa_power_monitor
   hostname: power-prusa
+  ip: 10.0.20.17
 
   <<: !include common/substitutions/gpio/sonoff.yaml
 

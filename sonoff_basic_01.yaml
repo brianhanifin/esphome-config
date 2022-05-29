@@ -5,6 +5,7 @@ substitutions:
   project: Sonoff Basic 01
   id: sonoff_basic_01
   hostname: sonoff_basic_01
+  ip: 
 
   <<: !include common/substitutions/gpio/sonoff.yaml
 

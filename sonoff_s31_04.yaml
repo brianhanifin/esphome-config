@@ -5,6 +5,7 @@ substitutions:
   project: Dryer power monitor
   id: powerdryer
   hostname: power-dryer
+  ip: 10.0.20.29
 
   <<: !include common/substitutions/gpio/sonoff.yaml
 

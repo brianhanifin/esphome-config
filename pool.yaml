@@ -3,6 +3,7 @@ substitutions:
   project: Pool Sensors
   id: pool
   hostname: pool
+  ip: 
 
   air_temp_gpio: GPIO19
 

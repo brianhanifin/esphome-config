@@ -11,6 +11,7 @@ substitutions:
   hostname: irrigation
   zone1_name: Front yard drip
   zone2_name: Pool filler
+  ip: 10.0.20.18
 
   <<: !include common/substitutions/gpio/sonoff4chpror2.yaml
 

@@ -5,6 +5,7 @@ substitutions:
   project: Bluetooth Hub
   id: bluetooth_hub
   hostname: bluetooth-hub
+
   <<: !include common/substitutions/bluetooth_hub.yaml
 
 <<: !include common/esphome/esp32_wrover.yaml

@@ -5,6 +5,7 @@ substitutions:
   project: plug02
   id: plug02
   hostname: plug02
+  ip: 10.0.20.62
 
   <<: !include common/substitutions/gpio/tuya_plug.yaml
 

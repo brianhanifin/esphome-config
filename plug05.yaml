@@ -5,6 +5,8 @@ substitutions:
   project: Hot water pump
   id: hot_water_pump
   hostname: plug-pump
+  ip: 10.0.20.65
+
   off_delay: 10min
 
   <<: !include common/substitutions/gpio/tuya_plug.yaml
