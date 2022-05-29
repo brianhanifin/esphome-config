@@ -29,5 +29,5 @@ energy:
   state_class: total_increasing
   unit_of_measurement: kWh
   accuracy_decimals: 1
-  # filters:
-  #   - multiply: 0.001
+  filters:
+    - multiply: 0.001

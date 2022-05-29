@@ -1,0 +1,5 @@
+---
+led_status_gpio: GPIO0
+button_gpio: GPIO4
+relay_gpio: GPIO15
+# "CF Pin": GPIO5
