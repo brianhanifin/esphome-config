@@ -36,7 +36,7 @@ binary_sensor:
   - platform: gpio
     pin:
       number: $button_gpio
-    id: button
+    id: button_toggle
     filters:
       - delayed_on: 10ms
       - delayed_off: 10ms
@@ -56,6 +56,10 @@ binary_sensor:
     id: motion
     entity_id: binary_sensor.upstairs_bathroom_presence
 
+button:
+  - platform: restart
+    id: restart_button
+
 globals:
   - id: remaining_time
     type: int
@@ -67,8 +71,17 @@ globals:
   #   restore_value: no
   #   initial_value: $default_humidity_delta_threshold
 
-# Update the timeout timers every 5 seconds.
 interval:
+  - interval: 2min
+    then:
+      - if:
+          condition:
+            not:
+              api.connected:
+          then:
+            logger.log: Home Assistant API has been disconnected for 15 minutes.
+  #           #button.press: restart_button
+
   - interval: 5s
     then:
       #- lambda: ESP_LOGD("interval", "diff %.1f > trigger %.1f ", id(humidity_delta).state, id(delta_trigger).state);
@@ -204,7 +217,6 @@ switch:
       return (id(relay).state);
     turn_on_action:
       - switch.turn_on: relay
-
 
       - if:
           condition:
