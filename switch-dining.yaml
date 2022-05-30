@@ -1,10 +1,10 @@
 ---
-# Shelly 1 Power Module
+# Shelly 1
 # Location: Dining room light wall switch
 #
 substitutions:
   project: Dining room light wall switch
-  id: switchdining
+  id: switch_dining
   hostname: switch-dining
   ip: 10.0.20.9
 
@@ -47,8 +47,9 @@ binary_sensor:
   - platform: gpio
     pin:
       number: $button_gpio
-    name: $project
+    #name: $project
     id: button
+    internal: true
     #disabled_by_default: true
     #entity_category: diagnostic
     filters:

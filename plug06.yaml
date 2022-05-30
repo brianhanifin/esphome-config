@@ -30,7 +30,7 @@ output:
 
 switch:
   - platform: gpio
-    name: $project
+    #name: $project
     id: relay
     pin: $relay_gpio
     internal: true
