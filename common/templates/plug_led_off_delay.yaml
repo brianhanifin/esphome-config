@@ -21,5 +21,4 @@ output:
   - !include ../outputs/status_led.yaml
 
 switch:
-  - !include ../switches/relay_internal.yaml
-  - !include ../switches/relay_status_led.yaml
+  - !include ../switches/relay_status_led_off_delay.yaml
