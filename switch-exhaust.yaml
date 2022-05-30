@@ -17,15 +17,95 @@ substitutions:
 <<: !include common/esphome/esp8266.yaml
 <<: !include common/common.yaml
 
+globals:
+  - id: remaining_time
+    type: int
+    restore_value: no
+    initial_value: "0"
+
+  # - id: delta_trigger
+  #   type: float
+  #   restore_value: no
+  #   initial_value: $default_humidity_delta_threshold
+
+interval:
+  - interval: 5s
+    then:
+      #- lambda: ESP_LOGD("interval", "diff %.1f > trigger %.1f ", id(humidity_delta).state, id(delta_trigger).state);
+
+      - if:
+          condition:
+            - switch.is_on: relay
+          then:
+            # Restart the timeout if motion is active or the delta is greater than the trigger.
+            - if:
+                condition:
+                  or:
+                    - binary_sensor.is_on: motion
+                    - lambda: return id(humidity_delta).state > id(delta_trigger).state;
+                then:
+                  - script.execute: timeout_restart
+                else:
+                  # Decrement the timeout.
+                  - if:
+                      condition:
+                        and:
+                          - lambda: return id(remaining_time) > 0;
+                          - lambda: return id(humidity_delta).state <= id(delta_trigger).state;
+                      then:
+                        - globals.set:
+                            id: remaining_time
+                            value: !lambda return id(remaining_time) -= 5;
+                        - sensor.template.publish:
+                            id: timeout
+                            state: !lambda return id(remaining_time);
+
+                  # Turn off the relay when the remaining time reaches zero
+                  - if:
+                      condition:
+                        - lambda: return id(remaining_time) == 0;
+                      then:
+                        - switch.turn_off: relay
+
+          # The relay is off.
+          else:
+              # Turn the fan on when the humidity delta is greater than the trigger.
+              - if:
+                  condition:
+                    - lambda: return id(humidity_delta).state > id(delta_trigger).state;
+                  then:
+                    - switch.turn_on: relay
+        
+                    - if:
+                        condition:
+                          - lambda: return id(diagnostic_last_trigger).state != "THRESHOLD";
+                        then:
+                          - text_sensor.template.publish:
+                              id: diagnostic_last_trigger
+                              state: THRESHOLD
+
+script:
+  - id: timeout_restart
+    then:
+      #- if:
+      #    condition:
+      #      - lambda: return id(remaining_time) < $timeout_duration;
+      #    then:
+      - globals.set:
+          id: remaining_time
+          value: !lambda return $timeout_duration;
+
+      - sensor.template.publish:
+          id: timeout
+          state: !lambda return id(remaining_time);
+
 binary_sensor:
   # Physical Toggle Switch. Monitor for switch position changes internally. Do not expose to Home Assistant.
   - platform: gpio
     pin:
       number: $button_gpio
     id: button_toggle
-    # filters:
-    #   - delayed_on: 10ms
-    #   - delayed_off: 10ms
+    internal: true
     filters:
       - delayed_on_off: 50ms
     on_state:
@@ -43,91 +123,6 @@ binary_sensor:
   - platform: homeassistant
     id: motion
     entity_id: binary_sensor.upstairs_bathroom_presence
-
-# button:
-#   - platform: restart
-#     id: restart_button
-
-globals:
-  - id: remaining_time
-    type: int
-    restore_value: no
-    initial_value: "0"
-
-  # - id: delta_trigger
-  #   type: float
-  #   restore_value: no
-  #   initial_value: $default_humidity_delta_threshold
-
-interval:
-  # - interval: 5min
-  #   then:
-  #     - if:
-  #         condition:
-  #           not:
-  #             api.connected:
-  #         then:
-  #           logger.log: Home Assistant API has been disconnected for 5 minutes.
-  # #           #button.press: restart_button
-
-  - interval: 5s
-    then:
-      #- lambda: ESP_LOGD("interval", "diff %.1f > trigger %.1f ", id(humidity_delta).state, id(delta_trigger).state);
-
-      - if: # Humidity threshold trigger.
-          condition:
-            and:
-              # If the difference is greater than the trigger.
-              - lambda: return id(humidity_delta).state > id(delta_trigger).state;
-
-              # and the fan is off.
-              - switch.is_off: relay
-          then:
-            - switch.turn_on: relay
-
-            - if:
-                condition:
-                  - lambda: return id(diagnostic_last_trigger).state != "THRESHOLD";
-                then:
-                  - text_sensor.template.publish:
-                      id: diagnostic_last_trigger
-                      state: THRESHOLD
-
-      - if: # Restart the timeout if motion is active.
-          condition:
-            - binary_sensor.is_on: motion
-          then:
-            - script.execute: timeout_restart
-
-      - if: # Decrement the timeout.
-          condition:
-            and:
-              - lambda: return id(remaining_time) > 0;
-              - lambda: return id(humidity_delta).state <= id(delta_trigger).state;
-              - switch.is_on: relay
-          then:
-            - globals.set:
-                id: remaining_time
-                value: !lambda return id(remaining_time) -= 5;
-            - sensor.template.publish:
-                id: timeout
-                state: !lambda return id(remaining_time);
-
-          # Time to turn off the relay.
-          else:
-            - if:
-                condition:
-                  - switch.is_on: relay
-                then:
-                  - if:
-                      condition:
-                        # If the difference is greater than the trigger.
-                        - lambda: return id(humidity_delta).state > id(delta_trigger).state;
-                      then:
-                        - script.execute: timeout_restart
-                      else:
-                        # Only turn the fan off if the humidity difference is below the trigger.
-                        - switch.turn_off: relay
 
 number:
   - platform: template
@@ -148,21 +143,6 @@ number:
     #     - globals.set:
     #         id: delta_trigger
     #         value: !lambda return id(delta_trigger_ui).state;
-
-script:
-  - id: timeout_restart
-    then:
-      #- if:
-      #    condition:
-      #      - lambda: return id(remaining_time) < $timeout_duration;
-      #    then:
-      - globals.set:
-          id: remaining_time
-          value: !lambda return $timeout_duration;
-
-      - sensor.template.publish:
-          id: timeout
-          state: !lambda return id(remaining_time);
 
 sensor:
   - platform: template
@@ -242,6 +222,7 @@ sensor:
     accuracy_decimals: 1
     device_class: temperature
     unit_of_measurement: "°C"
+    disabled_by_default: true
     entity_category: diagnostic
     calibration:
       b_constant: 3350
