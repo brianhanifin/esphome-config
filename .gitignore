@@ -4,14 +4,14 @@
 # Ignore project folders
 .esphome/
 3rd_party/
-bluetooth-*/
+bluetooth-*./
 irrigation/
-plug-*/
+plug-*./
 pool/
-power-*/
-shelly-*/
-sonoff-*/
-switch-*/
+power-*./
+shelly-*./
+sonoff-*./
+switch-*./
 
 # Ignore subfolders.
 **/lib
@@ -22,3 +22,6 @@ switch-*/
 .DS_Store
 /secrets.yaml
 partitions.csv
+
+# !/*.yaml/
+# !/*.h/
