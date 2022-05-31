@@ -52,7 +52,7 @@ text_sensor:
       - if:
           condition:
             for:
-              time: 1min
+              time: 10min
               condition:
                 - lambda: return id(online_state).state == "not_home";
           then:
