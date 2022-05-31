@@ -9,9 +9,13 @@ substitutions:
   project: Irrigation controller
   id: irrigation
   hostname: irrigation
-  zone1_name: Front yard drip
-  zone2_name: Pool filler
   ip: 10.0.20.18
+
+  zone1_name: Front yard drip
+  zone1_times_entity: input_text.front_yard_drip_times
+  
+  zone2_name: Pool filler
+  zone2_times_entity: input_text.pool_filler_times
 
   <<: !include common/substitutions/gpio/sonoff4chpror2.yaml
 
@@ -117,7 +121,6 @@ number:
   - platform: template
     name: $zone1_name duration
     id: irrigation_zone1_duration
-    #id: ui_zone1_duration
     icon: mdi:timer-sand
     #mode: slider #auto, box, slider
     #unit_of_measurement: minutes
@@ -318,7 +321,7 @@ text_sensor:
   # Retrieve list of times from the Home Assistant UI.
   - platform: homeassistant
     id: ui_zone1_times
-    entity_id: input_text.irrigation_zone1_times
+    entity_id: $zone1_times_entity
     on_value:
       then:
         #- delay: 10sec
@@ -328,7 +331,7 @@ text_sensor:
 
   - platform: homeassistant
     id: ui_zone2_times
-    entity_id: input_text.irrigation_zone2_times
+    entity_id: $zone2_times_entity
     on_value:
       then:
         #- delay: 10sec
