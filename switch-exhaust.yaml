@@ -8,7 +8,7 @@ substitutions:
   hostname: switch-exhaust
   ip: 10.0.20.50
 
-  default_humidity_delta_threshold: "1.0"  # Difference between house humidity and bathroom humidity.
+  default_humidity_delta_threshold: "2.0"  # Difference between house humidity and bathroom humidity.
   timeout_duration: "600"                  # 600 seconds = 10 minutes
   max_temp: "70.0"                         # Max power measurement board temperature in °C.
 
@@ -37,7 +37,7 @@ interval:
           condition:
             - switch.is_on: relay
           then:
-            # Restart the timeout if motion is active or the delta is greater than the trigger.
+            # Restart the timeout when motion is detected or the humidity delta is greater than the trigger.
             - if:
                 condition:
                   or:
