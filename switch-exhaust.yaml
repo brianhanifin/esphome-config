@@ -78,11 +78,11 @@ interval:
         
                     - if:
                         condition:
-                          - lambda: return id(diagnostic_last_trigger).state != "THRESHOLD";
+                          - lambda: return id(diagnostic_last_trigger).state != "HUMIDITY";
                         then:
                           - text_sensor.template.publish:
                               id: diagnostic_last_trigger
-                              state: THRESHOLD
+                              state: HUMIDITY
 
 script:
   - id: timeout_restart
@@ -123,6 +123,20 @@ binary_sensor:
   - platform: homeassistant
     id: motion
     entity_id: binary_sensor.upstairs_bathroom_presence
+    on_state:
+      - if:
+          condition:
+            binary_sensor.is_on: motion
+          then:
+            - switch.turn_on: relay
+
+            - if:
+                condition:
+                  - lambda: return id(diagnostic_last_trigger).state != "MOTION";
+                then:
+                  - text_sensor.template.publish:
+                      id: diagnostic_last_trigger
+                      state: MOTION
 
 number:
   - platform: template
@@ -205,7 +219,7 @@ sensor:
             - 14891.35352 -> 2679.0
         # Make everything below 2W appear as just 0W.
         - lambda: if (x < 2) return 0; else return x;
-    update_interval: 10s
+    update_interval: 60s
 
   - platform: total_daily_energy
     name: "$project daily energy"
@@ -278,13 +292,12 @@ switch:
       - switch.turn_off: relay
 
 text_sensor:
-  # Trigger states: PHYSICAL, VIRTUAL (UI or Alexa/Google), THRESHOLD
+  # Trigger states: PHYSICAL, VIRTUAL (UI or Alexa/Google), PRESENCE, HUMIDITY
   - platform: template
     id: diagnostic_last_trigger
     name: "$project last trigger"
     disabled_by_default: true
     entity_category: diagnostic
-
 
 time:
   - platform: homeassistant
