@@ -110,7 +110,6 @@ binary_sensor:
 dallas:
   - pin: $pool_temp_gpio
 
-
 sensor:
   - !include common/sensors/uptime.yaml
   - !include common/sensors/wifi_signal.yaml
@@ -119,14 +118,27 @@ sensor:
     pin: $air_temp_gpio
     model: AM2302
     temperature:
-      name: Pool Air Temperature
+      name: Pool air temperature
+      device_class: temperature
+      state_class: measurement
+      unit_of_measurement: "°C"
+      accuracy_decimals: 1
     humidity:
-      name: Pool Air Humidity
+      name: Pool air humidity
+      device_class: humidity
+      state_class: measurement
+      unit_of_measurement: "%"
+      accuracy_decimals: 0
 
   - platform: dallas
     address: 0x720119380145BF28
     id: pool_temp
-    name: Pool Temperature
+    name: Pool temperature
+    icon: mdi:pool-thermometer
+    device_class: temperature
+    state_class: measurement
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
 
 
 switch:
@@ -137,4 +149,4 @@ text_sensor:
   # Pool level states: LOW, OK, FULL
   - platform: template
     id: pool_level
-    name: Pool Level
+    name: Pool level
