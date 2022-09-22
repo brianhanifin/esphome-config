@@ -2,5 +2,9 @@
 # https://esphome.io/devices/nodemcu_esp32.html
 esphome:
   name: $hostname
-  platform: ESP32
+
+esp32:
   board: nodemcu-32s
+  framework:
+    version: recommended
+

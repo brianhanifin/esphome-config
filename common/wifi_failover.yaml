@@ -1,7 +1,7 @@
 ---
 wifi:
   ssid: !secret wifi_ssid
-  password: !secret wifi_pass
+  password: !secret wifi_password
 
   # Fallback Hotspot (requires "captive_portal:").
   ap:

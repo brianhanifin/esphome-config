@@ -1,5 +1,5 @@
 wifi:
   ssid: !secret wifi_ssid
-  password: !secret wifi_pass
+  password: !secret wifi_password
   use_address: $ip
   #reboot_timeout: 0s # Disable reboots for when Home Assistant is offline for an extended time.

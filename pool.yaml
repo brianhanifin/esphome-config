@@ -3,7 +3,7 @@ substitutions:
   project: Pool Sensors
   id: pool
   hostname: pool
-  ip: 
+  ip:
 
   air_temp_gpio: GPIO19
 
@@ -20,7 +20,7 @@ substitutions:
 
 wifi:
   ssid: !secret wifi_ssid
-  password: !secret wifi_pass
+  password: !secret wifi_password
 
   # Using these as a precaution to ensure solid WiFi connectivity.
   power_save_mode: none

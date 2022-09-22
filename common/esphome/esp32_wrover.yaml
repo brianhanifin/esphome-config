@@ -1,5 +1,9 @@
 ---
 esphome:
   name: $hostname
-  platform: ESP32
+
+esp32:
   board: esp-wrover-kit
+  framework:
+    version: recommended
+

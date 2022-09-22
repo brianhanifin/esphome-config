@@ -135,7 +135,7 @@ binary_sensor:
   # Use motion detection to keep fan running.
   - platform: homeassistant
     id: motion
-    entity_id: binary_sensor.upstairs_bathroom_presence
+    entity_id: binary_sensor.upstairs_bathroom_motion
     on_state:
       - if:
           condition:
@@ -307,7 +307,7 @@ switch:
       - switch.turn_off: relay
 
 text_sensor:
-  # Trigger states: PHYSICAL, VIRTUAL (UI or Alexa/Google), PRESENCE, HUMIDITY
+  # Trigger states: PHYSICAL, VIRTUAL (UI or Alexa/Google), motion, HUMIDITY
   - platform: template
     id: diagnostic_last_trigger
     name: "$project last trigger"
