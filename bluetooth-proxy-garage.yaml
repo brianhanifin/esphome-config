@@ -1,0 +1,19 @@
+---
+substitutions:
+  name: "bluetooth-proxy-garage"
+packages:
+  esphome.bluetooth-proxy: github://esphome/bluetooth-proxies/esp32-generic.yaml@main
+esphome:
+  name: ${name}
+  name_add_mac_suffix: false
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Using these as a precaution to ensure solid WiFi connectivity.
+  #power_save_mode: none # Disable for ESP32
+  manual_ip:
+    static_ip: 10.0.20.13
+    gateway: 10.0.20.1
+    subnet: 255.255.255.0

@@ -12,7 +12,7 @@ substitutions:
 
 wifi:
   ssid: !secret wifi_ssid
-  password: !secret wifi_pass
+  password: !secret wifi_password
   #use_address: bluetooth_hub.local
 
   # Using these as a precaution to ensure solid WiFi connectivity.
@@ -93,21 +93,21 @@ sensor:
     mac_address: "A4:C1:38:BF:98:48"
     bindkey: "9e58510b59d2f2d386a15c3ae60bf59a"
     temperature:
-      name: "Family Room temperature"
+      name: "Family room temperature"
       device_class: temperature
       state_class: measurement
       unit_of_measurement: "°C"
       accuracy_decimals: 1
 
     humidity:
-      name: "Family Room humidity"
+      name: "Family room humidity"
       device_class: humidity
       state_class: measurement
       unit_of_measurement: "%"
       accuracy_decimals: 0
 
     battery_level:
-      name: "Family Room temperature battery"
+      name: "Family room temperature battery"
       entity_category: diagnostic
       device_class: battery
       state_class: measurement
@@ -116,7 +116,7 @@ sensor:
 
   - platform: ble_rssi
     mac_address: "A4:C1:38:BF:98:48"
-    name: "Family Room temperature signal"
+    name: "Family room temperature signal"
     disabled_by_default: true
     entity_category: diagnostic
     device_class: signal_strength
