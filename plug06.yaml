@@ -54,6 +54,6 @@ text_sensor:
             for:
               time: 10min
               condition:
-                - lambda: return id(online_state).state == "not_home";
+                - lambda: return id(online_state).state != "home";
           then:
             - switch.turn_off: relay
