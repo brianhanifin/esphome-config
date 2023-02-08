@@ -8,9 +8,13 @@ substitutions:
   hostname: switch-exhaust
   ip: 10.0.20.50
 
-  default_humidity_delta_threshold: "2.0"  # Difference between house humidity and bathroom humidity.
+  humidity_reference_sensor: "sensor.upstairs_bathroom_humidity_average_last_24_hours"
+  #humidity_reference_sensor: "sensor.upstairs_temperature_average"
+  default_humidity_delta_start_threshold: "20.0"  # Difference between house humidity and bathroom humidity.
+  default_humidity_delta_end_threshold: "2.0"
   remaining_time_duration: "600"                  # 600 seconds = 10 minutes
-  max_temp: "70.0"                         # Max power measurement board temperature in °C.
+  user_interrupt_time_duration: "3600"            # 3600 seconds = 1 hour
+  max_temp: "70.0"                                # Max power measurement board temperature in °C.
 
   <<: !include common/substitutions/gpio/shelly1pm.yaml
 
@@ -18,10 +22,15 @@ substitutions:
 <<: !include common/common.yaml
 
 globals:
-  - id: delta_trigger
+  - id: delta_start_trigger
     type: float
     restore_value: no
-    initial_value: $default_humidity_delta_threshold
+    initial_value: $default_humidity_delta_start_threshold
+
+  - id: delta_end_trigger
+    type: float
+    restore_value: no
+    initial_value: $default_humidity_delta_end_threshold
 
   - id: humidity_delta
     type: float
@@ -33,48 +42,54 @@ globals:
     restore_value: no
     initial_value: "0"
 
+  - id: user_interrupt_time
+    type: int
+    restore_value: no
+    initial_value: "0"
+
 interval:
   - interval: 5s
     then:
-      #- lambda: ESP_LOGD("interval", "diff %.1f > trigger %.1f ", id(humidity_delta), id(delta_trigger));
+      #- lambda: ESP_LOGD("interval", "diff %.1f > trigger %.1f ", id(humidity_delta), id(delta_end_trigger));
 
+      # When the relay is on.
       - if:
           condition:
             - switch.is_on: relay
           then:
-            # Restart the remaining time when motion is detected or the humidity delta is greater than the trigger.
+            # Restart the remaining time when motion is detected.
             - if:
                 condition:
-                  or:
-                    - binary_sensor.is_on: motion
-                    - lambda: return id(humidity_delta) > id(delta_trigger);
+                  - binary_sensor.is_on: motion
                 then:
                   - script.execute: remaining_time_restart
                 else:
-                  # Decrement the remaining time.
+                  # Decrement the remaining time when the humidity delta is lower than the END trigger.
                   - if:
                       condition:
                         and:
+                          - lambda: return id(humidity_delta) <= id(delta_end_trigger);
                           - lambda: return id(remaining_time) > 0;
-                          - lambda: return id(humidity_delta) <= id(delta_trigger);
                       then:
                         - globals.set:
                             id: remaining_time
                             value: !lambda return id(remaining_time) -= 5;
 
-                  # Turn off the relay when the remaining time reaches zero
-                  - if:
-                      condition:
-                        - lambda: return id(remaining_time) == 0;
-                      then:
-                        - switch.turn_off: relay
+                        # Turn off the relay when the remaining time reaches zero
+                        - if:
+                            condition:
+                              - lambda: return id(remaining_time) == 0;
+                            then:
+                              - switch.turn_off: relay
 
-          # The relay is off.
+          # When the relay is off.
           else:
-              # Turn the fan on when the humidity delta is greater than the trigger.
+              # Turn the fan on when the humidity delta is greater than the START trigger and the user interrupt timer is not running.
               - if:
                   condition:
-                    - lambda: return id(humidity_delta) > id(delta_trigger);
+                    and:
+                      - lambda: return id(humidity_delta) > id(delta_start_trigger);
+                      #- lambda: return id(user_interrupt_time) == 0;
                   then:
                     - switch.turn_on: relay
 
@@ -87,13 +102,7 @@ interval:
                               state: HUMIDITY
 
       # Update the remaining time.
-      - if:
-          condition:
-            - lambda: return id(remaining_time_ui).state > 0;
-          then:
-            - sensor.template.publish:
-                id: remaining_time_ui
-                state: !lambda return id(remaining_time);
+      - script.execute: update_ui_timers
 
 script:
   - id: remaining_time_restart
@@ -106,11 +115,46 @@ script:
           id: remaining_time_ui
           state: !lambda return id(remaining_time);
 
+  - id: user_interrupt_time_restart
+    then:
+      # When humidity_delta is greater than end trigger, activate the interrupt timer.
+      - if:
+          condition:
+            - lambda: return id(humidity_delta) > id(delta_end_trigger);
+          then:
+            - globals.set:
+                id: user_interrupt_time
+                value: !lambda return $user_interrupt_time_duration;
+
+            - sensor.template.publish:
+                id: user_interrupt_time_ui
+                state: !lambda return id(user_interrupt_time) / 60;
+
   - id: update_humidity_delta
     then:
       - globals.set:
           id: humidity_delta
-          value: !lambda return id(humidity_now).state - id(humidity_24h).state;
+          value: !lambda return id(humidity_now).state - id(humidity_reference).state;
+
+  - id: update_ui_timers
+    then:
+      # Update the remaining time.
+      - if:
+          condition:
+            - lambda: return id(remaining_time) > 0;
+          then:
+            - sensor.template.publish:
+                id: remaining_time_ui
+                state: !lambda return id(remaining_time);
+
+      # Update the user interrupt time.
+      - if:
+          condition:
+            - lambda: return id(user_interrupt_time) > 0;
+          then:
+            - sensor.template.publish:
+                id: user_interrupt_time_ui
+                state: !lambda return id(user_interrupt_time) / 60;
 
 binary_sensor:
   # Physical Toggle Switch. Monitor for switch position changes internally. Do not expose to Home Assistant.
@@ -132,6 +176,13 @@ binary_sensor:
                 id: diagnostic_last_trigger
                 state: PHYSICAL
 
+      - if:
+          condition:
+            binary_sensor.is_off: button_toggle
+          then:
+            # Start the user interrupt timer.
+            - script.execute: user_interrupt_time_restart
+
   # Use motion detection to keep fan running.
   - platform: homeassistant
     id: motion
@@ -141,7 +192,11 @@ binary_sensor:
           condition:
             binary_sensor.is_on: motion
           then:
-            - switch.turn_on: relay
+            - if:
+                condition:
+                  switch.is_off: relay
+                then:
+                  - switch.turn_on: relay
 
             - if:
                 condition:
@@ -153,13 +208,31 @@ binary_sensor:
 
 number:
   - platform: template
-    name: "$project humidity delta trigger"
-    id: delta_trigger_ui
-    icon: "mdi:rocket-launch"
+    name: "$project humidity delta start trigger"
+    id: delta_start_trigger_ui
+    icon: "mdi:timer-play"
     entity_category: config
     unit_of_measurement: "%"
     optimistic: true
-    initial_value: $default_humidity_delta_threshold
+    initial_value: $default_humidity_delta_start_threshold
+    restore_value: true
+    min_value: 0.5
+    max_value: 30.0
+    step: 0.5
+    set_action:
+      then:
+        - globals.set:
+            id: delta_start_trigger
+            value: !lambda return id(delta_start_trigger_ui).state;
+
+  - platform: template
+    name: "$project humidity delta end trigger"
+    id: delta_end_trigger_ui
+    icon: "mdi:timer-stop"
+    entity_category: config
+    unit_of_measurement: "%"
+    optimistic: true
+    initial_value: $default_humidity_delta_end_threshold
     restore_value: true
     min_value: 0.5
     max_value: 15.0
@@ -167,15 +240,17 @@ number:
     set_action:
       then:
         - globals.set:
-            id: delta_trigger
-            value: !lambda return id(delta_trigger_ui).state;
+            id: delta_end_trigger
+            value: !lambda return id(delta_end_trigger_ui).state;
 
 sensor:
   - platform: homeassistant
-    id: humidity_24h
+    id: humidity_reference
     internal: true
     accuracy_decimals: 1
-    entity_id: sensor.upstairs_bathroom_humidity_average_last_24_hours
+    #entity_id: sensor.upstairs_bathroom_humidity_average_last_24_hours
+    #entity_id: sensor.upstairs_temperature_average
+    entity_id: $humidity_reference_sensor
     unit_of_measurement: "%"
     on_value:
       then:
@@ -208,6 +283,15 @@ sensor:
     entity_category: diagnostic
     unit_of_measurement: "seconds"
     lambda: return id(remaining_time);
+
+  - platform: template
+    id: user_interrupt_time_ui
+    name: "$project user interrupt time"
+    icon: "mdi:sort-clock-ascending"
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    unit_of_measurement: "minutes"
+    lambda: return id(user_interrupt_time) / 60;
 
   ## Power monitoring
   - platform: hlw8012
@@ -280,19 +364,22 @@ switch:
     id: relay
     pin: $relay_gpio
     on_turn_on:
-      # Start the remaining time timer.
+      # Start the remaining timer.
       - script.execute: remaining_time_restart
     on_turn_off:
       - globals.set:
           id: remaining_time
           value: "0"
 
+      - sensor.template.publish:
+          id: remaining_time_ui
+          state: "0"
+
   - platform: template
     id: virtual_switch
     name: $project
     optimistic: no
-    lambda: |-
-      return (id(relay).state);
+    lambda: return (id(relay).state);
     turn_on_action:
       - switch.turn_on: relay
 
@@ -306,8 +393,11 @@ switch:
     turn_off_action:
       - switch.turn_off: relay
 
+      # Start the user interrupt timer.
+      - script.execute: user_interrupt_time_restart
+
 text_sensor:
-  # Trigger states: PHYSICAL, VIRTUAL (UI or Alexa/Google), motion, HUMIDITY
+  # Trigger states: PHYSICAL, VIRTUAL (UI or voice assistant), MOTION, HUMIDITY
   - platform: template
     id: diagnostic_last_trigger
     name: "$project last trigger"
