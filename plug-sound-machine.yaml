@@ -4,7 +4,7 @@
 substitutions:
   project: Sound machine
   id: sound_machine
-  hostname: plug-sound
+  hostname: "plug-sound-machine"
 
   <<: !include common/substitutions/gpio/tuya_plug.yaml
 
