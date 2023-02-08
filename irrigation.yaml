@@ -46,9 +46,7 @@ wifi:
 
 <<: !include common/ota.yaml
 <<: !include common/logger.yaml
-
-# Enable Home Assistant API
-api:
+<<: !include common/api.yaml
 
 globals:
   # ============================================================================= #
