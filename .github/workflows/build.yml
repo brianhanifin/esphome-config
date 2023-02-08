@@ -4,27 +4,27 @@ name: build
 
 # yamllint disable-line rule:truthy
 on:
-  - push
+  push:
 
 jobs:
   esphome:
     runs-on: ubuntu-latest
     steps:
-      - name: ⤵️ Check out configuration from GitHub
-        uses: actions/checkout@v1
-      - name: Set up Python 3.7
-        uses: actions/setup-python@v1
+      - name: ⤵️ Check out configuration from GitHub.
+        uses: actions/checkout@v3.1.0
+      - name: Set up Python.
+        uses: actions/setup-python@v4
         with:
           python-version: 3.7
-      - name: Install dependencies
+      - name: Install dependencies.
         run: |
           python -m pip install --upgrade pip setuptools wheel
           pip install esphome
           pip list
           esphome version
-      - name: Copy secrets file into configuration folder
-        run: cp -R ./.stubs/* ./
-      - name: Run esphome on all files
+      - name: Copy secrets file into configuration folder.
+        run: cp ./secrets.fake.yaml ./secrets.yaml
+      - name: 🚀Run esphome on all files.
         # yamllint disable rule:line-length
         run: |
-          for file in $(find ./ -type f -name "*.yaml" -not -name "secrets.yaml" -path "common"); do esphome "${file}" config; done
+          for file in $(find ./config/esphome -type f -name "*.yaml" -maxdepth 1 -not -name "secrets.yaml"); do esphome "${file}" config; done
