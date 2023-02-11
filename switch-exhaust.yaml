@@ -10,8 +10,8 @@ substitutions:
 
   #humidity_reference_sensor: "sensor.upstairs_bathroom_humidity_average_last_24_hours"
   humidity_reference_sensor: "sensor.upstairs_humidity_average"
-  default_humidity_delta_start_threshold: "20.0"  # Difference between house humidity and bathroom humidity.
-  default_humidity_delta_end_threshold: "2.0"
+  default_humidity_delta_upper_threshold: "20.0"  # Difference between reference humidity and bathroom humidity.
+  default_humidity_delta_lower_threshold: "5.0"   
   remaining_time_duration: "600"                  # 600 seconds = 10 minutes
   user_interrupt_time_duration: "3600"            # 3600 seconds = 1 hour
   max_temp: "70.0"                                # Max power measurement board temperature in °C.
@@ -23,15 +23,15 @@ substitutions:
 <<: !include common/common.yaml
 
 globals:
-  - id: delta_start_trigger
+  - id: delta_upper_trigger
     type: float
     restore_value: no
-    initial_value: $default_humidity_delta_start_threshold
+    initial_value: $default_humidity_delta_upper_threshold
 
-  - id: delta_end_trigger
+  - id: delta_lower_trigger
     type: float
     restore_value: no
-    initial_value: $default_humidity_delta_end_threshold
+    initial_value: $default_humidity_delta_lower_threshold
 
   - id: humidity_delta
     type: float
@@ -51,7 +51,7 @@ globals:
 interval:
   - interval: 5s
     then:
-      #- lambda: ESP_LOGD("interval", "diff %.1f > trigger %.1f ", id(humidity_delta), id(delta_end_trigger));
+      #- lambda: ESP_LOGD("interval", "diff %.1f > trigger %.1f ", id(humidity_delta), id(delta_lower_trigger));
 
       # When running decrement the user interrupt timer.
       - if:
@@ -65,7 +65,6 @@ interval:
                 condition:
                   - switch.is_on: relay
                 then:
-                  # Restart the remaining time when motion is detected.
                   - if:
                       condition:
                         - binary_sensor.is_on: motion
@@ -73,10 +72,11 @@ interval:
                         # Allow the humidity to warm up the room by stopping fan when humidity begins rising while motion is on.
                         - if:
                             condition:
-                              - lambda: return id(humidity_delta) <= id(delta_end_trigger);
+                              - lambda: return id(humidity_delta) <= id(delta_lower_trigger);
                             then:
                               - switch.turn_off: relay
                             else:
+                              # Restart the remaining time when motion is detected.
                               - script.execute: remaining_time_restart
                       else:
                         - script.execute: remaining_time_decrement
@@ -86,16 +86,16 @@ interval:
                   - script.execute: humidity_trigger_check
 
       # Update the remaining time.
-      - script.execute: update_ui_timers
+      #- script.execute: update_ui_timers
 
 script:
   - id: humidity_trigger_check
     then:
-      # Turn the fan on when the humidity delta is greater than the START trigger and the user interrupt timer is not running.
+      # Turn the fan on when the humidity delta is greater than the upper trigger and the user interrupt timer is not running.
       - if:
           condition:
             and:
-              - lambda: return id(humidity_delta) > id(delta_start_trigger);
+              - lambda: return id(humidity_delta) > id(delta_upper_trigger);
               - lambda: return id(user_interrupt_time) == 0;
           then:
             - switch.turn_on: relay
@@ -110,18 +110,18 @@ script:
 
   - id: remaining_time_decrement
     then:
-      # Decrement the remaining time when the humidity delta is lower than the END trigger.
+      # Decrement the remaining time when the humidity delta is lower than the lower trigger.
       - if:
           condition:
             and:
-              - lambda: return id(humidity_delta) <= id(delta_end_trigger);
+              - lambda: return id(humidity_delta) <= id(delta_lower_trigger);
               - lambda: return id(remaining_time) > 0;
           then:
             - globals.set:
                 id: remaining_time
                 value: !lambda return id(remaining_time) -= 5;
 
-            # Turn off the relay when the remaining time reaches zero
+            # Turn off the relay when the remaining time reaches zero.
             - if:
                 condition:
                   - lambda: return id(remaining_time) == 0;
@@ -158,14 +158,18 @@ script:
           id: user_interrupt_time
           value: !lambda return id(user_interrupt_time) -= 5;
 
+      - sensor.template.publish:
+          id: user_interrupt_time_ui
+          state: !lambda return id(user_interrupt_time) / 60;
+
   - id: user_interrupt_time_restart
     then:
-      # When humidity_delta is greater than end trigger, activate the interrupt timer.
+      # When humidity_delta is greater than lower trigger, activate the interrupt timer.
       - if:
           condition:
             and:
               - lambda: return $user_interrupt_enabled;
-              - lambda: return id(humidity_delta) > id(delta_end_trigger);
+              - lambda: return id(humidity_delta) > id(delta_lower_trigger);
           then:
             - globals.set:
                 id: user_interrupt_time
@@ -257,13 +261,13 @@ binary_sensor:
 
 number:
   - platform: template
-    name: "$project humidity delta start trigger"
-    id: delta_start_trigger_ui
+    name: "$project humidity delta upper trigger"
+    id: delta_upper_trigger_ui
     icon: "mdi:timer-play"
     entity_category: config
     unit_of_measurement: "%"
     optimistic: true
-    initial_value: $default_humidity_delta_start_threshold
+    initial_value: $default_humidity_delta_upper_threshold
     restore_value: true
     min_value: 0.5
     max_value: 30.0
@@ -271,17 +275,17 @@ number:
     set_action:
       then:
         - globals.set:
-            id: delta_start_trigger
-            value: !lambda return id(delta_start_trigger_ui).state;
+            id: delta_upper_trigger
+            value: !lambda return id(delta_upper_trigger_ui).state;
 
   - platform: template
-    name: "$project humidity delta end trigger"
-    id: delta_end_trigger_ui
+    name: "$project humidity delta lower trigger"
+    id: delta_lower_trigger_ui
     icon: "mdi:timer-stop"
     entity_category: config
     unit_of_measurement: "%"
     optimistic: true
-    initial_value: $default_humidity_delta_end_threshold
+    initial_value: $default_humidity_delta_lower_threshold
     restore_value: true
     min_value: 0.5
     max_value: 15.0
@@ -289,8 +293,8 @@ number:
     set_action:
       then:
         - globals.set:
-            id: delta_end_trigger
-            value: !lambda return id(delta_end_trigger_ui).state;
+            id: delta_lower_trigger
+            value: !lambda return id(delta_lower_trigger_ui).state;
 
 sensor:
   - platform: homeassistant
