@@ -6,4 +6,4 @@ esp32:
   board: esp-wrover-kit
   framework:
     version: recommended
-
+  restore_from_flash: true

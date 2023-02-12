@@ -7,4 +7,4 @@ esp32:
   board: nodemcu-32s
   framework:
     version: recommended
-
+  restore_from_flash: true
