@@ -33,8 +33,13 @@ esp8266:
 interval:
   - interval: 5s
     then:
+      # Check the humidity every 5 seconds.
       - script.execute: humidity_delta_calculate
+      - script.execute: humidity_actions
 
+script:
+  - id: humidity_actions
+    then:
       - if:
           condition:
             - switch.is_on: relay
@@ -50,25 +55,22 @@ interval:
                   # Allow humidity to warm up the room.
                   - switch.turn_off: relay
 
-                  # Clear remaining time.
-                  - script.execute: remaining_time_clear
-
             # When the humidity is less than or equal to the lower trigger.
             - if:
                 condition:
-                  - lambda: return id(humidity_delta).state <= id(delta_lower_trigger).state;
+                  - lambda: return id(humidity_delta).state < id(delta_lower_trigger).state;
                 then:
-                  # Start the remaining time countdown.
+                  # When the countdown has not yet started.
                   - if:
                       condition:
                         - lambda: return id(remaining_time).state == 0;
                       then:
+                        # Begin the countdown.
                         - script.execute: remaining_time_start
                       else:
-                        # Decrement the remaing time.
+                        # Continue the remaining time countdown.
                         - script.execute: remaining_time_decrement
 
-script:
   - id: humidity_delta_calculate
     then:
       # Recalculate the difference between the bathroom humidity and the reference humidity.
@@ -87,6 +89,7 @@ script:
           then:
             - switch.turn_on: relay
 
+            # Set the last trigger.
             - if:
                 condition:
                   - lambda: return id(diagnostic_last_trigger).state != "HUMIDITY";
@@ -94,6 +97,48 @@ script:
                   - text_sensor.template.publish:
                       id: diagnostic_last_trigger
                       state: HUMIDITY
+
+  - id: motion_actions
+    then:
+        # When motion is detected.
+      - if:
+          condition:
+            - binary_sensor.is_on: motion
+          then:
+            - script.execute: motion_detected_actions
+
+      # When motion clears, the fan is on, the countdown has not already started, and humidity is below the lower trigger.
+      - if:
+          condition:
+            and:
+              - binary_sensor.is_off: motion
+              - switch.is_on: relay
+              - lambda: return id(remaining_time).state == 0;
+              - lambda: return id(humidity_delta).state <= id(delta_lower_trigger).state;
+          then:
+            # Start the countdown.
+            - script.execute: remaining_time_start
+
+  - id: motion_detected_actions
+    then:
+      # Turn on the fan.
+      - if:
+          condition:
+            - switch.is_off: relay
+          then:
+            - switch.turn_on: relay
+
+      # Stop the countdown timer.
+      - script.execute: remaining_time_clear
+
+      # Set the last trigger.
+      - if:
+          condition:
+            - lambda: return id(diagnostic_last_trigger).state != "MOTION";
+          then:
+            - text_sensor.template.publish:
+                id: diagnostic_last_trigger
+                state: MOTION
 
   - id: remaining_time_clear
     then:
@@ -145,9 +190,12 @@ binary_sensor:
     on_state:
       - switch.toggle: relay
 
+      # Set the last trigger.
       - if:
           condition:
-            - lambda: return id(diagnostic_last_trigger).state != "PHYSICAL";
+            and:
+              - switch.is_on: relay
+              - lambda: return id(diagnostic_last_trigger).state != "PHYSICAL";
           then:
             - text_sensor.template.publish:
                 id: diagnostic_last_trigger
@@ -158,36 +206,7 @@ binary_sensor:
     id: motion
     entity_id: binary_sensor.upstairs_bathroom_motion
     on_state:
-      - if:
-          # When motion is detected.
-          condition:
-            and:
-              - binary_sensor.is_on: motion
-          then:
-            - if:
-                condition:
-                  - switch.is_off: relay
-                then:
-                  - switch.turn_on: relay
-
-            - if:
-                condition:
-                  - lambda: return id(diagnostic_last_trigger).state != "MOTION";
-                then:
-                  - text_sensor.template.publish:
-                      id: diagnostic_last_trigger
-                      state: MOTION
-
-      # Start the countdown when: motion ends, the fan is on, the countdown has not already started, and humidity is below the lower trigger.
-      - if:
-          condition:
-            and:
-              - binary_sensor.is_off: motion
-              - switch.is_on: relay
-              - lambda: return id(remaining_time).state == 0;
-              - lambda: return id(humidity_delta).state <= id(delta_lower_trigger).state;
-          then:
-            - script.execute: remaining_time_start
+      - script.execute: motion_actions
 
 number:
   - platform: template
@@ -319,12 +338,6 @@ switch:
   - platform: gpio
     id: relay
     pin: $relay_gpio
-    on_turn_on:
-      - if:
-          condition:
-            - lambda: return id(humidity_delta).state <= id(delta_lower_trigger).state;
-          then:
-            - script.execute: remaining_time_start
     on_turn_off:
       - script.execute: remaining_time_clear
 
