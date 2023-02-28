@@ -10,17 +10,23 @@ substitutions:
 
   #humidity_reference_sensor: "sensor.upstairs_bathroom_humidity_average_last_24_hours"
   humidity_reference_sensor: "sensor.upstairs_humidity_average"
+  #humidity_reference_sensor: "input_number.test"
   remaining_time_duration: "600"                  # 600 seconds = 10 minutes
+  stuck_duration: "1min"
   max_temp: "70.0"                                # Max power measurement board temperature in °C.
 
   <<: !include common/substitutions/gpio/shelly1pm.yaml
 
 esphome:
   name: $hostname
+  friendly_name: $project
   on_boot:
     - sensor.template.publish:
         id: remaining_time
         state: 0
+    - script.execute:
+        id: status_set
+        value: "BOOT"
 
 esp8266:
   board: esp01_1m
@@ -30,118 +36,221 @@ esp8266:
 
 <<: !include common/common.yaml
 
+globals:
+  - id: current_status
+    type: std::string
+    initial_value: ""
+
+  - id: previous_status
+    type: std::string
+    initial_value: ""
+
 interval:
   - interval: 5s
     then:
-      # Check the humidity every 5 seconds.
+      # Update the current status.
       - script.execute: humidity_delta_calculate
-      - script.execute: humidity_actions
+      - script.execute: humidity_status_update
+      - script.execute: motion_status_update
+      #- script.execute: warm_stuck_update
+
+      # Continue the countdown, then take action.
+      - script.execute: remaining_time_decrement
+      - script.execute: status_change_actions
 
 script:
-  - id: humidity_actions
+  ################################
+  # TAKE ACTION ON STATUS CHANGE #
+  ################################
+  - id: status_change_actions
     then:
+      #- logger.log: "##### status_change_actions"
+      # OFF, WARM, BOOT
+      # MANUAL_ON, PHYSICAL, VIRTUAL
+      # MOTION_DETECTED, MOTION_CLEARED, HUMIDITY_LOWER, HUMIDITY_UPPER, WARM_STUCK
       - if:
           condition:
-            - switch.is_on: relay
+            or:
+              - lambda: return id(current_status) == "PHYSICAL";
+              - lambda: return id(current_status) == "VIRTUAL";
+              - lambda: return id(current_status) == "MOTION_DETECTED";
+              - lambda: return id(current_status) == "MOTION_CLEARED";
+              - lambda: return id(current_status) == "HUMIDITY_LOWER";
+              - lambda: return id(current_status) == "HUMIDITY_UPPER";
+              - lambda: return id(current_status) == "WARM_STUCK";
           then:
-            # When the humidity is not the trigger, and the humidity is between the lower and upper trigger values.
+            - script.execute: relay_on
+
+            # Start the countdown in these cases.
             - if:
                 condition:
                   and:
-                    - lambda: return id(diagnostic_last_trigger).state != "HUMIDITY";
-                    - lambda: return id(humidity_delta).state >= id(delta_lower_trigger).state;
-                    - lambda: return id(humidity_delta).state < id(delta_upper_trigger).state;
+                    - lambda: return id(humidity_delta).state <= id(delta_lower_trigger).state;
+                    - or:
+                        - lambda: return id(current_status) == "PHYSICAL";
+                        - lambda: return id(current_status) == "VIRTUAL";
+                        - lambda: return id(current_status) == "MOTION_CLEARED";
+                        - lambda: return id(current_status) == "HUMIDITY_LOWER";
                 then:
-                  # Allow humidity to warm up the room.
-                  - switch.turn_off: relay
+                  - script.execute: remaining_time_start
 
-            # When the humidity is less than or equal to the lower trigger.
+            # Stop the countdown in these cases.
             - if:
                 condition:
-                  - lambda: return id(humidity_delta).state < id(delta_lower_trigger).state;
+                  or:
+                    - lambda: return id(current_status) == "MOTION_DETECTED";
+                    - lambda: return id(current_status) == "HUMIDITY_UPPER";
+                    - lambda: return id(current_status) == "WARM_STUCK";
+                    - lambda: return id(humidity_delta).state >= id(delta_lower_trigger).state;
                 then:
-                  # When the countdown has not yet started.
-                  - if:
-                      condition:
-                        - lambda: return id(remaining_time).state == 0;
-                      then:
-                        # Begin the countdown.
-                        - script.execute: remaining_time_start
-                      else:
-                        # Continue the remaining time countdown.
-                        - script.execute: remaining_time_decrement
+                  - script.execute: remaining_time_clear
 
+          else:
+            - if:
+                condition:
+                  and:
+                    - lambda: return id(current_status) == "OFF";
+                    - lambda: return id(humidity_delta).state <= id(delta_lower_trigger).state;
+                then:
+                  - script.execute: relay_off
+
+            - if:
+                condition:
+                  and:
+                    - lambda: return id(previous_status) != "BOOT";
+                    - or:
+                        - lambda: return id(current_status) == "WARM";
+                        - lambda: return id(current_status) == "BOOT";
+                then:
+                  - script.execute: relay_off
+
+  ###########################
+  # STATUS CHANGING ACTIONS #
+  ###########################
   - id: humidity_delta_calculate
     then:
+      #- logger.log: "##### humidity_delta_calculate"
       # Recalculate the difference between the bathroom humidity and the reference humidity.
       - sensor.template.publish:
           id: humidity_delta
           state: !lambda return id(humidity_now).state - id(humidity_reference).state;
 
-  - id: humidity_trigger_check
+  - id: humidity_status_update
     then:
-      # Turn the fan on when the humidity delta reaches the upper trigger.
+      #- logger.log: "##### humidity_status_update"
+      # When MOTION_DETECTED and the humidity is between the lower and upper trigger values.
       - if:
           condition:
             and:
-              - switch.is_off: relay
+              - lambda: return id(humidity_delta).state > id(delta_lower_trigger).state;
+              - lambda: return id(humidity_delta).state < id(delta_upper_trigger).state;
+              #- lambda: return id(current_status) == "MOTION_DETECTED";
+              - switch.is_on: relay
+          then:
+            # Humidity has entered the warming zone.
+            - script.execute:
+                id: status_set
+                value: "WARM"
+
+      # When the humidity is in the warming zone and the upper trigger is reached.
+      - if:
+          condition:
+            and:
+              - lambda: return id(current_status) == "WARM";
               - lambda: return id(humidity_delta).state >= id(delta_upper_trigger).state;
           then:
-            - switch.turn_on: relay
+            # Set the new status.
+            - script.execute:
+                id: status_set
+                value: "HUMIDITY_UPPER"
 
-            # Set the last trigger.
-            - if:
-                condition:
-                  - lambda: return id(diagnostic_last_trigger).state != "HUMIDITY";
-                then:
-                  - text_sensor.template.publish:
-                      id: diagnostic_last_trigger
-                      state: HUMIDITY
-
-  - id: motion_actions
-    then:
-        # When motion is detected.
-      - if:
-          condition:
-            - binary_sensor.is_on: motion
-          then:
-            - script.execute: motion_detected_actions
-
-      # When motion clears, the fan is on, the countdown has not already started, and humidity is below the lower trigger.
+      # When the humidity reaches or falls below the lower trigger.
       - if:
           condition:
             and:
-              - binary_sensor.is_off: motion
-              - switch.is_on: relay
-              - lambda: return id(remaining_time).state == 0;
               - lambda: return id(humidity_delta).state <= id(delta_lower_trigger).state;
+              # But only when one of the following are the current state.
+              - or:
+                  - lambda: return id(current_status) == "HUMIDITY_UPPER";
+                  - lambda: return id(current_status) == "WARM_STUCK";
+                  - lambda: return id(current_status) == "WARM";
           then:
-            # Start the countdown.
-            - script.execute: remaining_time_start
+            - script.execute:
+                id: status_set
+                value: "HUMIDITY_LOWER"
 
-  - id: motion_detected_actions
+  - id: motion_status_update
     then:
-      # Turn on the fan.
+      #- logger.log: "##### motion_status_update"
+      # Ignore motion state changes when the following states are active.
+      - if:
+          condition:
+            and:
+              - lambda: return id(current_status) != "WARM";
+              - lambda: return id(current_status) != "HUMIDITY_UPPER";
+              - lambda: return id(current_status) == "WARM_STUCK";
+          then:
+            - if:
+                condition:
+                  and:
+                    - binary_sensor.is_on: motion
+                    - lambda: return id(current_status) != "MOTION_DETECTED";
+                then:
+                  - script.execute:
+                      id: status_set
+                      value: "MOTION_DETECTED"
+
+            - if:
+                condition:
+                  and:
+                    - binary_sensor.is_off: motion
+                    - lambda: return id(current_status) == "MOTION_DETECTED";
+                then:
+                  - script.execute:
+                      id: status_set
+                      value: "MOTION_CLEARED"
+
+  - id: warm_stuck_update
+    then:
+      #- logger.log: "##### warm_stuck_update"
+      - if:
+          condition:
+            for:
+              time: $stuck_duration
+              condition:
+                - lambda: return id(current_status) == "WARM";
+          then:
+            # When warm is stuck start clearning out the humidity.
+            - script.execute:
+                id: status_set
+                value: "WARM_STUCK"
+
+  ###################
+  # UTILITY ACTIONS #
+  ###################
+  - id: relay_off
+    then:
+      #- logger.log: "##### relay_off"
+      - if:
+          condition:
+            - switch.is_on: relay
+          then:
+            - switch.turn_off: relay
+
+            - script.execute: remaining_time_clear
+
+  - id: relay_on
+    then:
+      #- logger.log: "##### relay_on"
       - if:
           condition:
             - switch.is_off: relay
           then:
             - switch.turn_on: relay
 
-      # Stop the countdown timer.
-      - script.execute: remaining_time_clear
-
-      # Set the last trigger.
-      - if:
-          condition:
-            - lambda: return id(diagnostic_last_trigger).state != "MOTION";
-          then:
-            - text_sensor.template.publish:
-                id: diagnostic_last_trigger
-                state: MOTION
-
   - id: remaining_time_clear
     then:
+      #- logger.log: "##### remaining_time_clear"
       - if:
           condition:
             - lambda: return id(remaining_time).state > 0;
@@ -152,78 +261,95 @@ script:
 
   - id: remaining_time_decrement
     then:
-      # Decrement the timer.
+      #- logger.log: "##### remaining_time_decrement"
       - if:
           condition:
-            and:
-              - lambda: return id(remaining_time).state > 0;
-              - switch.is_on: relay
+            - lambda: return id(remaining_time).state > 0;
           then:
+            # Decrement the timer.
             - sensor.template.publish:
                 id: remaining_time
                 state: !lambda return id(remaining_time).state -= 5;
 
-      # Turn off the relay when the remaining time reaches zero.
+            # Set the state to "OFF" when the remaining time reaches zero.
+            - if:
+                condition:
+                  - lambda: return id(remaining_time).state == 0;
+                then:
+                  - script.execute:
+                      id: status_set
+                      value: "OFF"
+
+  - id: remaining_time_start
+    then:
+      #- logger.log: "##### remaining_time_start"
       - if:
           condition:
             and:
               - lambda: return id(remaining_time).state == 0;
               - switch.is_on: relay
+              - lambda: return id(previous_status) != id(current_status);
           then:
-            - switch.turn_off: relay
+            - sensor.template.publish:
+                id: remaining_time
+                state: !lambda return $remaining_time_duration;
 
-  - id: remaining_time_start
+  - id: status_set
+    parameters:
+      value: string
     then:
-      - sensor.template.publish:
-          id: remaining_time
-          state: !lambda return $remaining_time_duration;
+      #- logger.log: "##### status_set"
 
-binary_sensor:
-  # Physical Toggle Switch. Monitor for switch position changes internally. Do not expose to Home Assistant.
-  - platform: gpio
-    pin:
-      number: $button_gpio
-    id: button_toggle
-    internal: true
-    filters:
-      - delayed_on_off: 50ms
-    on_state:
-      - switch.toggle: relay
-
-      # Set the last trigger.
       - if:
           condition:
-            and:
-              - switch.is_on: relay
-              - lambda: return id(diagnostic_last_trigger).state != "PHYSICAL";
+            - lambda: return id(current_status) != value;
           then:
-            - text_sensor.template.publish:
-                id: diagnostic_last_trigger
-                state: PHYSICAL
+            # Store previous state.
+            - globals.set:
+                id: previous_status
+                value: !lambda return id(current_status);
 
-  # Use motion detection to keep fan running.
-  - platform: homeassistant
-    id: motion
+            # Store the changed value.
+            - globals.set:
+                id: current_status
+                value: !lambda return value;
+
+            # Update the status sensor.
+            - text_sensor.template.publish:
+                id: status
+                state: !lambda return value;
+
+binary_sensor:
+  # - id: physical_switch
+  #   platform: gpio
+  #   internal: true
+  #   pin:
+  #     number: $button_gpio
+  #   filters:
+  #     - delayed_on_off: 50ms
+  #   on_state:
+  #     # Set the new status.
+  #     - if:
+  #         condition:
+  #           - binary_sensor.is_on: physical_switch
+  #         then:
+  #           - switch.turn_on: relay
+  #           - script.execute:
+  #               id: status_set
+  #               value: "PHYSICAL"
+  #         else:
+  #           - script.execute:
+  #               id: status_set
+  #               value: "OFF"
+
+  - id: motion
+    platform: homeassistant
     entity_id: binary_sensor.upstairs_bathroom_motion
-    on_state:
-      - script.execute: motion_actions
 
 number:
-  - platform: template
-    name: "$project humidity delta upper trigger"
-    id: delta_upper_trigger
-    icon: "mdi:timer-play"
-    entity_category: config
-    unit_of_measurement: "%"
-    optimistic: true
-    restore_value: true
-    min_value: 0.5
-    max_value: 30.0
-    step: 0.5
-
-  - platform: template
-    name: "$project humidity delta lower trigger"
-    id: delta_lower_trigger
+  - id: delta_lower_trigger
+    platform: template
+    name: "humidity delta lower trigger"
     icon: "mdi:timer-stop"
     entity_category: config
     unit_of_measurement: "%"
@@ -233,35 +359,44 @@ number:
     max_value: 15.0
     step: 0.5
 
+  - id: delta_upper_trigger
+    platform: template
+    name: "humidity delta upper trigger"
+    icon: "mdi:timer-play"
+    entity_category: config
+    unit_of_measurement: "%"
+    optimistic: true
+    restore_value: true
+    min_value: 0.5
+    max_value: 30.0
+    step: 0.5
+
 sensor:
-  - platform: template
-    id: humidity_delta
-    name: "$project humidity delta"
+  - id: humidity_delta
+    platform: template
+    name: "humidity delta"
     accuracy_decimals: 1
     icon: "mdi:delta"
     entity_category: diagnostic
     unit_of_measurement: "%"
-    on_value:
-      then:
-        - script.execute: humidity_trigger_check
 
-  - platform: homeassistant
-    id: humidity_now
+  - id: humidity_now
+    platform: homeassistant
     internal: true
     accuracy_decimals: 1
     entity_id: sensor.upstairs_bathroom_humidity
     unit_of_measurement: "%"
 
-  - platform: homeassistant
-    id: humidity_reference
+  - id: humidity_reference
+    platform: homeassistant
     internal: true
     accuracy_decimals: 1
     entity_id: $humidity_reference_sensor
     unit_of_measurement: "%"
 
-  - platform: template
-    id: remaining_time
-    name: "$project remaining time"
+  - id: remaining_time
+    platform: template
+    name: "remaining time"
     icon: "mdi:sort-clock-ascending"
     accuracy_decimals: 0
     entity_category: diagnostic
@@ -277,7 +412,7 @@ sensor:
     cf1_pin: GPIO13 # not used because it is not available on the 1PM but it is needed to compile
     sel_pin: GPIO14 # not used because it is not available on the 1PM but it is needed to compile
     power:
-      name: "$project power"
+      name: "power"
       id: "shelly1pm_power"
       device_class: power
       state_class: measurement
@@ -299,7 +434,7 @@ sensor:
     update_interval: 60s
 
   - platform: total_daily_energy
-    name: "$project daily energy"
+    name: "daily energy"
     power_id: "shelly1pm_power"
     device_class: energy
     state_class: total_increasing
@@ -310,7 +445,7 @@ sensor:
   # Temperature overheat monitoring.
   - platform: ntc
     sensor: temp_resistance_reading
-    name: "$project temperature"
+    name: "temperature"
     accuracy_decimals: 1
     device_class: temperature
     unit_of_measurement: "°C"
@@ -335,47 +470,36 @@ sensor:
     resistor: 32kOhm
 
 switch:
-  - platform: gpio
-    id: relay
+  - id: relay
+    platform: gpio
     pin: $relay_gpio
-    on_turn_off:
-      - script.execute: remaining_time_clear
 
-  - platform: template
-    id: virtual_switch
-    name: $project
-    optimistic: no
-    lambda: return (id(relay).state);
+  - id: virtual_switch
+    platform: template
+    name: switch
     turn_off_action:
-      - if:
-          condition:
-            - switch.is_on: relay
-          then:
-            - switch.turn_off: relay
+      - script.execute:
+          id: status_set
+          value: "OFF"
     turn_on_action:
-      - if:
-          condition:
-            - switch.is_off: relay
-          then:
-            - switch.turn_on: relay
-
-      - if:
-          condition:
-            - lambda: return id(diagnostic_last_trigger).state != "VIRTUAL";
-          then:
-            - text_sensor.template.publish:
-                id: diagnostic_last_trigger
-                state: VIRTUAL
+      - script.execute:
+          id: status_set
+          value: "VIRTUAL"
+    lambda: |-
+      std::string off_values[3] = {"OFF", "WARM", "BOOT"};
+      bool result = true;
+      for (int i=0; i<sizeof(off_values); i++) {
+        if (id(current_status) == off_values[i]) result = false;
+      }
+      return result;
 
 text_sensor:
-  # Trigger states: PHYSICAL, VIRTUAL (UI or voice assistant), MOTION, HUMIDITY
-  - platform: template
-    id: diagnostic_last_trigger
-    name: "$project last trigger"
-    disabled_by_default: true
+  - id: status
+    platform: template
+    name: "status"
     entity_category: diagnostic
 
 time:
-  - platform: homeassistant
-    id: homeassistant_time
+  - id: homeassistant_time
+    platform: homeassistant
     timezone: America/Los_Angeles
