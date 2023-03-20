@@ -52,7 +52,6 @@ interval:
       - script.execute: humidity_delta_calculate
       - script.execute: humidity_status_update
       - script.execute: motion_status_update
-      #- script.execute: warm_stuck_update
 
       # Continue the countdown, then take action.
       - script.execute: remaining_time_decrement
@@ -144,8 +143,10 @@ script:
             and:
               - lambda: return id(humidity_delta).state > id(delta_lower_trigger).state;
               - lambda: return id(humidity_delta).state < id(delta_upper_trigger).state;
-              #- lambda: return id(current_status) == "MOTION_DETECTED";
-              - switch.is_on: relay
+              # ... and the humidity delta was NOT previously HUMIDITY_UPPER.
+              - lambda: return id(current_status) != "HUMIDITY_UPPER";
+              - lambda: return id(current_status) != "WARM_STUCK";
+              #- switch.is_on: relay
           then:
             # Humidity has entered the warming zone.
             - script.execute:
@@ -188,7 +189,7 @@ script:
             and:
               - lambda: return id(current_status) != "WARM";
               - lambda: return id(current_status) != "HUMIDITY_UPPER";
-              - lambda: return id(current_status) == "WARM_STUCK";
+              - lambda: return id(current_status) != "WARM_STUCK";
           then:
             - if:
                 condition:
@@ -498,6 +499,9 @@ text_sensor:
     platform: template
     name: "status"
     entity_category: diagnostic
+    on_value:
+      then:
+        - script.execute: warm_stuck_update
 
 time:
   - id: homeassistant_time
