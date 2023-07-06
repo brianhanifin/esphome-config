@@ -1,0 +1,368 @@
+# https://github.com/lubeda/EsphoMaTrix/blob/main/README.md#services
+substitutions:
+  project: Pixel clock 1
+  id: pixel_clock1
+  hostname: pixel-clock1
+
+  #font_file: "common/fonts/Calcium.ttf"
+  font_file: "common/fonts/iPixelSans.ttf"
+  #font_file: "common/fonts/NotSoTallPixelRRR.ttf" # Sans serif narrow
+  #font_file: "common/fonts/PixelType2.ttf" # Sans serif square
+  #font_file: "common/fonts/RetaFontsZasicFontPixel.ttf" # Sans serif wide
+
+  # Pin definition from https://github.com/aptonline/PixelIt_Ulanzi
+  battery_pin: GPIO34
+  ldr_pin: GPIO35
+  matrix_pin: GPIO32
+  left_button_pin: GPIO26
+  mid_button_pin: GPIO27
+  right_button_pin: GPIO14
+  buzzer_pin: GPIO15
+  scl_pin: GPIO22
+  sda_pin: GPIO21
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/lubeda/EsphoMaTrix
+    refresh: 60s
+    components: [ ehmtx ]
+
+esphome:
+  comment: "Ulanzi TC001 pixel clock"
+  friendly_name: $project
+  name: $hostname
+  on_boot:
+    - priority: 100
+      then:
+        - ds1307.read_time:
+
+esp32:
+  board: esp32dev
+
+<<: !include common/wifi.yaml
+<<: !include common/ota.yaml
+<<: !include common/logger.yaml
+<<: !include common/api.yaml
+
+web_server:
+
+font:
+  # adapt the filename to your local settings
+  # public domain font https://www.pentacom.jp/pentacom/bitfontmaker2/gallery/?id=5993
+  # or https://github.com/darkpoet78/MatrixClockFonts
+  - file: $font_file
+    id: ehmtx_font
+    size: 16
+    glyphs:  |
+      ! "#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz°
+
+# Added in proposed pull request #101 <https://github.com/dennisse/EsphoMaTrix/tree/dennisse>.
+globals:
+  - id: autoadjust_brightness
+    type: "bool"
+    restore_value: true
+    initial_value: "true"
+
+binary_sensor:
+  - !include common/binary_sensors/status.yaml
+
+  # Buttons
+  - platform: gpio
+    name: "Left button"
+    entity_category: diagnostic
+    pin:
+      number: $left_button_pin
+      inverted: true
+    on_press:
+      lambda:
+        id(rgb8x32)->skip_screen();
+
+  - platform: gpio
+    name: "Middle button"
+    entity_category: diagnostic
+    pin:
+      inverted: true
+      number: $mid_button_pin
+      mode: INPUT_PULLUP
+    on_press:
+      lambda:
+        id(rgb8x32)->hold_screen();
+
+  - platform: gpio
+    name: "Right button"
+    entity_category: diagnostic
+    pin:
+      number: $right_button_pin
+      inverted: true
+    on_press:
+      lambda:
+        id(rgb8x32)->skip_screen();
+
+# Enable Home Assistant API
+api:
+  services:
+    - service: alarm
+      variables:
+        icon_name: string
+        text: string
+      then:
+        lambda: |-
+          id(rgb8x32)->add_screen(icon_name,text,7,30,true);
+          id(rgb8x32)->force_screen(icon_name);
+
+    - service: screen
+      variables:
+        icon_name: string
+        text: string
+      then:
+        - ehmtx.add.screen:
+            id: rgb8x32
+            text: !lambda return text;
+            icon_name: !lambda return icon_name;
+            alarm: false
+
+    # - service: tuneplay
+    #   variables:
+    #     tune: string
+    #   then:
+    #     - rtttl.play:
+    #         rtttl: !lambda 'return tune;'
+                 
+number:
+  - platform: template
+    name: "Brightness"
+    min_value: 0
+    max_value: 255
+    step: 1
+    lambda: |-
+      return id(rgb8x32)->get_brightness();
+    set_action:
+      lambda: |-
+        id(rgb8x32)->set_brightness(x);
+
+switch:
+  - platform: template
+    name: "Display"
+    icon: "mdi:power"
+    restore_mode: ALWAYS_ON
+    lambda: |-
+      return id(rgb8x32)->show_display;
+    turn_on_action:
+      lambda: |-
+        id(rgb8x32)->set_display_on();
+    turn_off_action:
+      lambda: |-
+        id(rgb8x32)->set_display_off();
+
+  # Added in proposed pull request #101 <https://github.com/dennisse/EsphoMaTrix/tree/dennisse>.
+  - platform: template
+    name: "Auto-adjust brightness"
+    id: switch_autobrightness
+    icon: mdi:brightness-auto
+    restore_mode: RESTORE_DEFAULT_ON
+    lambda: |-
+      if (id(autoadjust_brightness)) {
+        return true;
+      } else {
+        return false;
+      }
+    turn_on_action:
+      then:
+        lambda: |-
+          id(autoadjust_brightness) = true;
+    turn_off_action:
+      then:
+        lambda: |-
+          id(autoadjust_brightness) = false;
+
+sensor:
+  - !include common/sensors/uptime.yaml
+  - !include common/sensors/wifi_signal.yaml
+
+  - platform: sht3xd
+    temperature:
+      name: "Internal temperature"
+    humidity:
+      name: "Internal relative humidity"
+    update_interval: 60s
+
+  - platform: adc
+    pin: $battery_pin
+    name: "battery"
+    id: battery_voltage
+    update_interval: 10s
+    device_class: battery
+    accuracy_decimals: 0
+    attenuation: auto
+    filters:
+      - sliding_window_moving_average:
+          window_size: 15
+          send_every: 15
+          send_first_at: 1
+      - multiply: 1.6
+      - lambda: |-
+          auto r = ((x - 3) / 0.69 * 100.00);
+          if (r >= 100) return 100;
+          if (r > 0) return r;
+          if (r <= 0) return 1;
+          return 0;
+    unit_of_measurement: '%'
+
+  - platform: adc
+    id: light_sensor
+    name: "Illuminance"
+    pin: $ldr_pin
+    update_interval: 10s
+    attenuation: auto
+    unit_of_measurement: lx
+    accuracy_decimals: 0
+    filters:
+      - lambda: |-
+          return (x / 10000.0) * 2000000.0 - 15 ;
+    # Added in proposed pull request #101 <https://github.com/dennisse/EsphoMaTrix/tree/dennisse>.
+    on_value:
+      then:
+        - lambda: |-
+            if ( id(autoadjust_brightness) ) {
+              int n = x / 4 * 1.1 > 255 ? 255 : x / 4 * 1.1; // new value
+              int c = id(rgb8x32)->get_brightness(); // current value
+              int d = (n - c) * 100 / c; // diff in %
+              if ( abs(d) > 2 ) id(rgb8x32)->set_brightness(n);
+            }
+
+output:
+  - platform: ledc
+    pin: $buzzer_pin
+    id: rtttl_out
+
+rtttl:
+  output: rtttl_out
+
+i2c:
+  sda: 21
+  scl: 22
+  scan: true
+  id: bus_a
+
+light:
+  - platform: neopixelbus
+    id: ehmtx_light
+    type: GRB
+    variant: WS2812
+    pin: $matrix_pin
+    num_leds: 256
+    color_correct: [30%, 30%, 30%]
+    name: "Light"
+    restore_mode: ALWAYS_OFF
+    on_turn_on:
+      lambda: |-
+         id(ehmtx_display)->set_enabled(false);
+    on_turn_off:
+       lambda: |-
+         id(ehmtx_display)->set_enabled(true);
+
+time:
+  - platform: homeassistant
+    on_time_sync:
+      then:
+        ds1307.write_time:
+  - platform: ds1307
+    update_interval: never
+    id: ehmtx_time
+
+display:
+  - platform: addressable_light
+    id: ehmtx_display
+    addressable_light_id: ehmtx_light
+    width: 32
+    height: 8
+    pixel_mapper: |-
+      if (y % 2 == 0) {
+        return (y * 32) + x;
+      }
+      return (y * 32) + (31 - x);
+    rotation: 0°
+    update_interval: 16ms
+    auto_clear_enabled: true
+    lambda: |-
+      id(rgb8x32)->tick();
+      id(rgb8x32)->draw();
+
+ehmtx:
+  id: rgb8x32
+  matrix_component: ehmtx_display
+  time_component: ehmtx_time
+  font_id: ehmtx_font
+  yoffset: 8
+  clock_time: 30
+  screen_time: 30
+  show_date: false
+  show_dow: false # dow = day of week
+  date_format: "%m.%d"
+  time_format: "%I:%M"
+  icons2html: true
+  icons:
+    # https://developer.lametric.com/icons
+    - id: info
+      lameid: 620
+    - id: warning
+      lameid: 2012
+    - id: question
+      lameid: 35088
+    # - id: question2
+    #   lameid: 918
+    # - id: question3
+    #   lameid: 35017
+
+    - id: alert
+      lameid: 2012
+    - id: redalert
+      lameid: 3491
+    - id: yellowalert
+      lameid: 35029
+
+    - id: bell
+      lameid: 43573
+    - id: doorbell
+      lameid: 43573
+    - id: drop
+      lameid: 12184
+    - id: food
+      lameid: 40496
+    - id: temperature
+      lameid: 2262
+    - id: temperature_inside
+      lameid: 8441
+
+    - id: weather_chance_of_rain
+      lameid: 12184
+    - id: weather_cloudy
+      lameid: 2283
+    - id: weather_fog
+      lameid: 17055
+    - id: weather_hail
+      lameid: 51398
+    - id: weather_lightning
+      lameid: 49299
+    - id: weather_night
+      lameid: 13345
+    - id: weather_partly_cloudy
+      lameid: 12183
+    - id: weather_pouring
+      lameid: 49300
+    - id: weather_rainy
+      lameid: 26565
+    - id: weather_snowy
+      lameid: 2289
+    - id: weather_snowy_rainy
+      lameid: 49301
+    - id: weather_sunny
+      lameid: 4785
+    - id: weather_unknown
+      lameid: 52176
+    - id: weather_windy
+      lameid: 52169
+
+    # - id: ha
+    #   url: https://github.com/home-assistant/assets/raw/master/logo/logo-small.png

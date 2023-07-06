@@ -1,0 +1,17 @@
+---
+# Luntak brand Tuya Plug
+#
+substitutions:
+  project: Workbench fan
+  #comment: Turn off after 6 hours.
+  comment: Fan above garage workbench. (Plug01)
+  id: workbench_fan
+  hostname: "workbench-fan"
+  #ip: 10.0.20.61
+
+  #off_delay: 360min
+
+  <<: !include common/substitutions/gpio/tuya_plug.yaml
+
+#<<: !include common/templates/plug_led_off_delay.yaml
+<<: !include common/templates/plug.yaml

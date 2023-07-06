@@ -1,5 +1,5 @@
 ---
-<<: !include wifi.yaml
+<<: !include wifi_failover.yaml
 <<: !include ota.yaml
 <<: !include logger.yaml
 <<: !include api.yaml

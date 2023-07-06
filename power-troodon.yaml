@@ -1,0 +1,14 @@
+---
+# Sonoff S31 power monitoring plug
+#
+substitutions:
+  project: Troodon power monitor
+  id: troodon_power_monitor
+  hostname: "power-troodon"
+  comment: "Master power for Troodon 3D printer (including Klipper/Moonraker). (sonoff_s31_03)"
+  ip: 10.0.20.17
+
+  <<: !include common/substitutions/gpio/sonoff.yaml
+
+<<: !include common/templates/sonoff_power_monitor.yaml
+#<<: !include common/templates/sonoff_power_monitor_always_on.yaml

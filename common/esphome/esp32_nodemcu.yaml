@@ -2,6 +2,7 @@
 # https://esphome.io/devices/nodemcu_esp32.html
 esphome:
   name: $hostname
+  comment: $comment
 
 esp32:
   board: nodemcu-32s

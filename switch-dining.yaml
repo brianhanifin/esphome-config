@@ -6,7 +6,7 @@ substitutions:
   project: Dining room light wall switch
   id: switch_dining
   hostname: switch-dining
-  ip: 10.0.20.9
+  #ip: 10.0.20.9
 
   light_entity: light.dining_room
 

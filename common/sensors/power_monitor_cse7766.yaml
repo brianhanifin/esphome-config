@@ -1,5 +1,6 @@
 ---
 platform: cse7766
+update_interval: 5s
 current:
   name: $project current
   entity_category: diagnostic

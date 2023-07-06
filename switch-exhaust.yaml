@@ -6,7 +6,7 @@ substitutions:
   project: Upstairs bathroom exhaust
   id: switch_exhaust
   hostname: switch-exhaust
-  ip: 10.0.20.50
+  #ip: 10.0.20.50
 
   #humidity_reference_sensor: "sensor.upstairs_bathroom_humidity_average_last_24_hours"
   humidity_reference_sensor: "sensor.upstairs_humidity_average"

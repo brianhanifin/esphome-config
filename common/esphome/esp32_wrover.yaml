@@ -1,6 +1,7 @@
 ---
 esphome:
   name: $hostname
+  comment: $comment
 
 esp32:
   board: esp-wrover-kit

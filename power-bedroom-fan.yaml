@@ -2,11 +2,10 @@
 # Sonoff S31 Power Monitoring Plug, Always On
 #
 substitutions:
-  project: Washing machine power monitor
-  comment: sonoff_s31_02
-  id: powerwasher
-  hostname: power-washer
-  #ip: 10.0.20.44
+  project: Bedroom fan power monitor
+  id: powerbedroomfan
+  hostname: "power-bedroom-fan"
+  ip: 10.0.20.30
 
   <<: !include common/substitutions/gpio/sonoff.yaml
 
