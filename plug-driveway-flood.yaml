@@ -2,7 +2,7 @@
 # Luntak brand Tuya Plug (plug02)
 #
 substitutions:
-  friendly_name: plug02
+  friendly_name: "Power cycle: driveway flood"
   id: plug02
   hostname: "plug-driveway-flood"
   ip: 10.0.20.62
@@ -10,6 +10,7 @@ substitutions:
   <<: !include common/substitutions/gpio/tuya_plug.yaml
 
 esphome:
+  friendly_name: $friendly_name
   name: $hostname
 
 esp8266:

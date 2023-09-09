@@ -1,12 +1,12 @@
 ---
 substitutions:
-  name: "muse-luxe"
   friendly_name: "Muse luxe speaker"
+  name: "muse-luxe"
   wifi_ap_password: ""
 
 esphome:
-  name: ${name}
   friendly_name: ${friendly_name}
+  name: ${name}
   name_add_mac_suffix: true
   min_version: 2023.7.0
   on_boot:

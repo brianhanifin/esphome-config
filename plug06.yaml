@@ -10,6 +10,7 @@ substitutions:
   <<: !include common/substitutions/gpio/tuya_plug.yaml
 
 esphome:
+  friendly_name: $friendly_name
   name: $hostname
 
 esp8266:

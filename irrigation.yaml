@@ -6,7 +6,7 @@
 # Personal project goals: https://github.com/brianhanifin/Home-Assistant-Config/issues/37
 #
 substitutions:
-  friendly_name: Irrigation controller
+  friendly_name: Irrigation
   id: irrigation
   hostname: irrigation
   ip: 10.0.20.18
@@ -20,6 +20,7 @@ substitutions:
   <<: !include common/substitutions/gpio/sonoff4chpror2.yaml
 
 esphome:
+  friendly_name: $friendly_name
   name: $hostname
   includes:
     - irrigation.h

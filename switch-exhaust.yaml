@@ -18,8 +18,8 @@ substitutions:
   <<: !include common/substitutions/gpio/shelly1pm.yaml
 
 esphome:
-  name: $hostname
   friendly_name: $friendly_name
+  name: $hostname
   on_boot:
     - sensor.template.publish:
         id: remaining_time

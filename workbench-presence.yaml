@@ -4,9 +4,9 @@ substitutions:
 packages:
   Athom_Technology.Presence_Sensor: github://athom-tech/athom-configs/athom-presence-sensor.yaml
 esphome:
+  friendly_name: ${friendly_name}
   name: ${name}
   name_add_mac_suffix: false
-  friendly_name: ${friendly_name}
 api:
   encryption:
     key: !secret encryption_key

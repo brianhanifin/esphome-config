@@ -29,9 +29,9 @@ external_components:
     components: [ ehmtx ]
 
 esphome:
-  comment: "Ulanzi TC001 pixel clock"
   friendly_name: $friendly_name
   name: $hostname
+  comment: "Ulanzi TC001 pixel clock"
   on_boot:
     - priority: 100
       then:
