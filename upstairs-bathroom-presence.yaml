@@ -1,0 +1,17 @@
+substitutions:
+  name: upstairs-bathroom-presence
+  friendly_name: Upstairs bathroom presence
+packages:
+  Athom_Technology.Presence_Sensor: github://athom-tech/athom-configs/athom-presence-sensor.yaml
+esphome:
+  name: ${name}
+  name_add_mac_suffix: false
+  friendly_name: ${friendly_name}
+api:
+  encryption:
+    key: !secret encryption_key
+
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password

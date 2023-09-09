@@ -1,0 +1,287 @@
+---
+substitutions:
+  name: "muse-luxe"
+  friendly_name: "Muse luxe speaker"
+  wifi_ap_password: ""
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  name_add_mac_suffix: true
+  min_version: 2023.7.0
+  on_boot:
+    then:
+      - output.turn_on: dac_mute
+      - light.turn_on:
+          id: top_led
+          effect: slow_pulse
+          red: 100%
+          green: 60%
+          blue: 0%
+
+esp32:
+  board: esp-wrover-kit
+  framework:
+    type: arduino
+
+logger:
+
+api:
+  encryption:
+    key: "xRjAqmRi/XHf0q4hxjKTNVos7J8fDg8UhRuiGBxPDmw="
+  services:
+    - service: start_va
+      then:
+        - voice_assistant.start
+    - service: stop_va
+      then:
+        - voice_assistant.stop
+ota:
+
+i2c:
+  sda: GPIO18
+  scl: GPIO23
+
+wifi:
+  ap:
+    password: "${wifi_ap_password}"
+
+captive_portal:
+
+improv_serial:
+
+external_components:
+  - source: github://pr#3552 # DAC support https://github.com/esphome/esphome/pull/3552
+    components: [es8388]
+    refresh: 0s
+
+es8388:
+
+globals:
+  - id: wifi_connected
+    type: bool
+    initial_value: "false"
+    restore_value: false
+
+interval:
+  - interval: 1s
+    then:
+      - if:
+          condition:
+            and:
+              - lambda: 'return !id(wifi_connected);'
+              - wifi.connected:
+          then:
+            - globals.set:
+                id: wifi_connected
+                value: "true"
+            - light.turn_on:
+                id: top_led
+                effect: pulse
+                red: 0%
+                green: 100%
+                blue: 0%
+            - delay: 1s
+            - light.turn_off: top_led
+
+output:
+  - platform: gpio
+    id: dac_mute
+    pin: GPIO21
+    inverted: true
+
+i2s_audio:
+  - i2s_lrclk_pin: GPIO25
+    i2s_bclk_pin: GPIO5
+
+media_player:
+  - platform: i2s_audio
+    name: None
+    id: luxe_out
+    dac_type: external
+    i2s_dout_pin: GPIO26
+    mode: stereo
+    mute_pin:
+      number: GPIO21
+      inverted: true
+    on_state:
+      if:
+        condition:
+          media_player.is_playing:
+        then:
+          output.turn_off: dac_mute
+        else:
+          output.turn_on: dac_mute
+
+microphone:
+  - platform: i2s_audio
+    id: luxe_microphone
+    i2s_din_pin: GPIO35
+    adc_type: external
+    pdm: false
+
+voice_assistant:
+  microphone: luxe_microphone
+  on_start:
+    - media_player.stop:
+    - light.turn_on:
+        id: top_led
+        blue: 100%
+        red: 0%
+        green: 0%
+        effect: none
+  on_tts_start:
+    - light.turn_on:
+        id: top_led
+        blue: 60%
+        red: 20%
+        green: 20%
+        effect: none
+  on_tts_end:
+    - media_player.play_media: !lambda return x;
+    - light.turn_on:
+        id: top_led
+        blue: 60%
+        red: 20%
+        green: 20%
+        effect: pulse
+  on_end:
+    - delay: 1s
+    - wait_until:
+        not:
+          media_player.is_playing: luxe_out
+    - light.turn_off: top_led
+  on_error:
+    - light.turn_on:
+        id: top_led
+        blue: 0%
+        red: 100%
+        green: 0%
+        effect: none
+    - delay: 1s
+    - light.turn_off: top_led
+
+sensor:
+  - platform: adc
+    pin: GPIO33
+    name: Battery voltage
+    device_class: voltage
+    unit_of_measurement: "V"
+    accuracy_decimals: 2
+    state_class: measurement
+    entity_category: diagnostic
+    update_interval: 15s
+    attenuation: auto
+    filters:
+      - multiply: 2 # https://forum.raspiaudio.com/t/esp-muse-luxe-bluetooth-speaker/294/12
+      - exponential_moving_average:
+          alpha: 0.2
+          send_every: 2
+      - delta: 0.002
+    on_value:
+      then:
+        - sensor.template.publish:
+            id: battery_percent
+            state: !lambda 'return x;'
+
+  - platform: template
+    name: Battery
+    id: battery_percent
+    device_class: battery
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    state_class: measurement
+    entity_category: diagnostic
+    update_interval: 15s
+    filters:
+      - calibrate_polynomial:
+          degree: 3
+          datapoints:
+            - 4.58 -> 100.0
+            - 4.5 -> 97.1
+            - 4.47 -> 94.2
+            - 4.44 -> 88.4
+            - 4.42 -> 82.7
+            - 4.41 -> 76.9
+            - 4.41 -> 71.1
+            - 4.37 -> 65.3
+            - 4.35 -> 59.5
+            - 4.31 -> 53.8
+            - 4.28 -> 48.0
+            - 4.26 -> 42.2
+            - 4.23 -> 36.4
+            - 4.21 -> 30.6
+            - 4.19 -> 24.9
+            - 4.16 -> 19.1
+            - 4.1 -> 13.3
+            - 4.07 -> 10.4
+            - 4.03 -> 7.5
+            - 3.97 -> 4.6
+            - 3.82 -> 1.7
+            - 3.27 -> 0.0
+      - lambda: return std::min(std::max((double)x, 0.0), 100.0);
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO19
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    name: Volume Up
+    on_click:
+      - media_player.volume_up: luxe_out
+  - platform: gpio
+    pin:
+      number: GPIO32
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    name: Volume Down
+    on_click:
+      - media_player.volume_down: luxe_out
+  - platform: gpio
+    pin:
+      number: GPIO12
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    name: Action
+    on_multi_click:
+      - timing:
+          - ON FOR AT MOST 350ms
+          - OFF FOR AT LEAST 10ms
+        then:
+          - media_player.toggle: luxe_out
+      - timing:
+          - ON FOR AT LEAST 350ms
+        then:
+          - voice_assistant.start:
+      - timing:
+          - ON FOR AT LEAST 350ms
+          - OFF FOR AT LEAST 10ms
+        then:
+          - voice_assistant.stop:
+
+light:
+  - platform: neopixelbus
+    name: None
+    id: top_led
+    pin: GPIO22
+    variant: SK6812
+    num_leds: 1
+    type: grb
+    default_transition_length: 0s
+    gamma_correct: 2.8
+    effects:
+      - pulse:
+          name: pulse
+          transition_length: 250ms
+          update_interval: 250ms
+      - pulse:
+          name: slow_pulse
+          transition_length: 1s
+          update_interval: 2s
