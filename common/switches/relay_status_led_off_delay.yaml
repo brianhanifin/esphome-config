@@ -1,6 +1,6 @@
 ---
 platform: gpio
-name: $project
+name: $friendly_name
 id: relay
 pin: $relay_gpio
 on_turn_on:

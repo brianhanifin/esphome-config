@@ -2,7 +2,7 @@
 # Luntak brand Tuya Plug
 #
 substitutions:
-  project: Workbench fan
+  friendly_name: Workbench fan
   #comment: Turn off after 6 hours.
   comment: Fan above garage workbench. (Plug01)
   id: workbench_fan

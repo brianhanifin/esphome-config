@@ -6,7 +6,7 @@
 # Personal project goals: https://github.com/brianhanifin/Home-Assistant-Config/issues/37
 #
 substitutions:
-  project: Irrigation controller
+  friendly_name: Irrigation controller
   id: irrigation
   hostname: irrigation
   ip: 10.0.20.18
@@ -124,6 +124,8 @@ binary_sensor:
       then:
         - switch.toggle: irrigation_zone2
 
+button:
+  - !include common/switches/restart.yaml
 
 number:
   - platform: template
@@ -231,7 +233,7 @@ sensor:
 
 
 switch:
-  - !include common/switches/restart.yaml
+  #- !include common/switches/restart.yaml
 
   # ============================================================================= #
   # Virtual zone Switches which toggle the relay, and store the current state.

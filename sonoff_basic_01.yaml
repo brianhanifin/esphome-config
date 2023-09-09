@@ -2,7 +2,7 @@
 # Sonoff Basic Power Module
 #
 substitutions:
-  project: Sonoff Basic 01
+  friendly_name: Sonoff Basic 01
   id: sonoff_basic_01
   hostname: sonoff_basic_01
   comment: Sonoff Basic 01

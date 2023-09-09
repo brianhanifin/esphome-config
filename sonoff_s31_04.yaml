@@ -2,7 +2,7 @@
 # Sonoff S31 Power Monitoring Plug
 #
 substitutions:
-  project: Dryer power monitor
+  friendly_name: Dryer power monitor
   comment: sonoff_s31_04
   id: powerdryer
   hostname: power-dryer

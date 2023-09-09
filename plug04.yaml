@@ -2,7 +2,7 @@
 # Luntak brand Tuya Plug
 #
 substitutions:
-  project: Printer
+  friendly_name: Printer
   id: printer
   hostname: plug-printer
 

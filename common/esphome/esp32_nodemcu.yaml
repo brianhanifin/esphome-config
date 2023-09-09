@@ -1,6 +1,7 @@
 ---
 # https://esphome.io/devices/nodemcu_esp32.html
 esphome:
+  friendly_name: $friendly_name
   name: $hostname
   comment: $comment
 

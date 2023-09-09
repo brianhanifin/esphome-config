@@ -2,7 +2,7 @@
 # Sonoff S31 Power Monitoring Plug, Always On
 #
 substitutions:
-  project: Bedroom fan power monitor
+  friendly_name: Bedroom fan power monitor
   id: powerbedroomfan
   hostname: "power-bedroom-fan"
   ip: 10.0.20.30

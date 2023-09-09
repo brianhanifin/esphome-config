@@ -14,7 +14,7 @@ on_boot:
           api.connected:
         then:
           # If connected, then flash the LED, and leave it at full brightness.
-          - logger.log: "$project is connected to the Home Assistant API!"
+          - logger.log: "$friendly_name is connected to the Home Assistant API!"
           - light.turn_on:
               id: status_led
               brightness: 100%

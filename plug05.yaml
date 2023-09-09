@@ -2,7 +2,7 @@
 # Luntak brand Tuya Plug
 #
 substitutions:
-  project: Hot water pump
+  friendly_name: Hot water pump
   id: hot_water_pump
   hostname: plug-pump
   ip: 10.0.20.65

@@ -2,7 +2,7 @@
 # Sonoff S31 Power Monitoring Plug
 #
 substitutions:
-  project: Family room soundbar power monitor
+  friendly_name: Family room soundbar power monitor
   id: soundbar_power_monitor
   hostname: power-soundbar
   ip: 10.0.20.28

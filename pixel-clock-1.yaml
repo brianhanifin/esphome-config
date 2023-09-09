@@ -1,6 +1,6 @@
 # https://github.com/lubeda/EsphoMaTrix/blob/main/README.md#services
 substitutions:
-  project: Pixel clock 1
+  friendly_name: Pixel clock 1
   id: pixel_clock1
   hostname: pixel-clock1
 
@@ -30,7 +30,7 @@ external_components:
 
 esphome:
   comment: "Ulanzi TC001 pixel clock"
-  friendly_name: $project
+  friendly_name: $friendly_name
   name: $hostname
   on_boot:
     - priority: 100
@@ -128,7 +128,7 @@ api:
     #   then:
     #     - rtttl.play:
     #         rtttl: !lambda 'return tune;'
-                 
+
 number:
   - platform: template
     name: "Brightness"

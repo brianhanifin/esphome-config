@@ -1,6 +1,6 @@
 ---
 substitutions:
-  project: Pool Sensors
+  friendly_name: Pool Sensors
   id: pool
   hostname: pool
   ip:

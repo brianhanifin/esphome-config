@@ -2,7 +2,7 @@
 # Luntak brand Tuya Plug
 #
 substitutions:
-  project: Sound machine
+  friendly_name: Sound machine
   id: sound_machine
   hostname: "plug-sound-machine"
 

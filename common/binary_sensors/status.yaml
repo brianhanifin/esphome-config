@@ -1,4 +1,4 @@
 ---
 platform: status
-name: $project Status
+name: $friendly_name Status
 entity_category: diagnostic

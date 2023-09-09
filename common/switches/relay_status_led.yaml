@@ -1,6 +1,6 @@
 ---
 platform: template
-name: $project
+name: $friendly_name
 optimistic: no
 lambda: |-
   if (id(relay).state) {

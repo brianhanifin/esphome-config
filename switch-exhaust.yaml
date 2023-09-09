@@ -3,7 +3,7 @@
 # Location: Upstairs bathroom in wall
 #
 substitutions:
-  project: Upstairs bathroom exhaust
+  friendly_name: Upstairs bathroom exhaust
   id: switch_exhaust
   hostname: switch-exhaust
   #ip: 10.0.20.50
@@ -19,7 +19,7 @@ substitutions:
 
 esphome:
   name: $hostname
-  friendly_name: $project
+  friendly_name: $friendly_name
   on_boot:
     - sensor.template.publish:
         id: remaining_time
@@ -51,7 +51,7 @@ interval:
       # Update the current status.
       - script.execute: humidity_delta_calculate
       - script.execute: humidity_status_update
-      - script.execute: motion_status_update
+      - script.execute: presence_status_update
 
       # Continue the countdown, then take action.
       - script.execute: remaining_time_decrement
@@ -66,14 +66,14 @@ script:
       #- logger.log: "##### status_change_actions"
       # OFF, WARM, BOOT
       # MANUAL_ON, PHYSICAL, VIRTUAL
-      # MOTION_DETECTED, MOTION_CLEARED, HUMIDITY_LOWER, HUMIDITY_UPPER, WARM_STUCK
+      # PRESENCE_DETECTED, PRESENCE_CLEARED, HUMIDITY_LOWER, HUMIDITY_UPPER, WARM_STUCK
       - if:
           condition:
             or:
               - lambda: return id(current_status) == "PHYSICAL";
               - lambda: return id(current_status) == "VIRTUAL";
-              - lambda: return id(current_status) == "MOTION_DETECTED";
-              - lambda: return id(current_status) == "MOTION_CLEARED";
+              - lambda: return id(current_status) == "PRESENCE_DETECTED";
+              - lambda: return id(current_status) == "PRESENCE_CLEARED";
               - lambda: return id(current_status) == "HUMIDITY_LOWER";
               - lambda: return id(current_status) == "HUMIDITY_UPPER";
               - lambda: return id(current_status) == "WARM_STUCK";
@@ -88,7 +88,7 @@ script:
                     - or:
                         - lambda: return id(current_status) == "PHYSICAL";
                         - lambda: return id(current_status) == "VIRTUAL";
-                        - lambda: return id(current_status) == "MOTION_CLEARED";
+                        - lambda: return id(current_status) == "PRESENCE_CLEARED";
                         - lambda: return id(current_status) == "HUMIDITY_LOWER";
                 then:
                   - script.execute: remaining_time_start
@@ -97,7 +97,7 @@ script:
             - if:
                 condition:
                   or:
-                    - lambda: return id(current_status) == "MOTION_DETECTED";
+                    - lambda: return id(current_status) == "PRESENCE_DETECTED";
                     - lambda: return id(current_status) == "HUMIDITY_UPPER";
                     - lambda: return id(current_status) == "WARM_STUCK";
                     - lambda: return id(humidity_delta).state >= id(delta_lower_trigger).state;
@@ -137,7 +137,7 @@ script:
   - id: humidity_status_update
     then:
       #- logger.log: "##### humidity_status_update"
-      # When MOTION_DETECTED and the humidity is between the lower and upper trigger values.
+      # When PRESENCE_DETECTED and the humidity is between the lower and upper trigger values.
       - if:
           condition:
             and:
@@ -180,10 +180,10 @@ script:
                 id: status_set
                 value: "HUMIDITY_LOWER"
 
-  - id: motion_status_update
+  - id: presence_status_update
     then:
-      #- logger.log: "##### motion_status_update"
-      # Ignore motion state changes when the following states are active.
+      #- logger.log: "##### presence_status_update"
+      # Ignore presence state changes when the following states are active.
       - if:
           condition:
             and:
@@ -194,22 +194,22 @@ script:
             - if:
                 condition:
                   and:
-                    - binary_sensor.is_on: motion
-                    - lambda: return id(current_status) != "MOTION_DETECTED";
+                    - binary_sensor.is_on: presence
+                    - lambda: return id(current_status) != "PRESENCE_DETECTED";
                 then:
                   - script.execute:
                       id: status_set
-                      value: "MOTION_DETECTED"
+                      value: "PRESENCE_DETECTED"
 
             - if:
                 condition:
                   and:
-                    - binary_sensor.is_off: motion
-                    - lambda: return id(current_status) == "MOTION_DETECTED";
+                    - binary_sensor.is_off: presence
+                    - lambda: return id(current_status) == "PRESENCE_DETECTED";
                 then:
                   - script.execute:
                       id: status_set
-                      value: "MOTION_CLEARED"
+                      value: "PRESENCE_CLEARED"
 
   - id: warm_stuck_update
     then:
@@ -343,9 +343,9 @@ binary_sensor:
   #               id: status_set
   #               value: "OFF"
 
-  - id: motion
+  - id: presence
     platform: homeassistant
-    entity_id: binary_sensor.upstairs_bathroom_motion
+    entity_id: binary_sensor.upstairs_bathroom_presence_occupancy
 
 number:
   - id: delta_lower_trigger
@@ -462,7 +462,7 @@ sensor:
           - homeassistant.event:
               event: esphome.overheat
               data:
-                title: "$project has overheated."
+                title: "$friendly_name has overheated."
 
   - platform: resistance
     id: temp_resistance_reading

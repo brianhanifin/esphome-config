@@ -1,7 +1,9 @@
 ---
 esphome:
+  friendly_name: $friendly_name
   name: $hostname
   comment: $comment
+
   <<: !include ../esphome/leds/status.yaml
 
 esp8266:

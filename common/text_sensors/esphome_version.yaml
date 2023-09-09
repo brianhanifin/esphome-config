@@ -1,4 +1,4 @@
 ---
 platform: version
-name: $project Esphome Version
+name: $friendly_name Esphome Version
 entity_category: diagnostic

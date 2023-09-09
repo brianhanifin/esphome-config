@@ -2,7 +2,7 @@
 # Sonoff S31 Power Monitoring Plug, Always On
 #
 substitutions:
-  project: Washing machine power monitor
+  friendly_name: Washing machine power monitor
   comment: sonoff_s31_02
   id: powerwasher
   hostname: power-washer

@@ -1,8 +1,8 @@
 ---
-# Luntak brand Tuya Plug (plug02)
+# Luntak brand Tuya Plug (plug06)
 #
 substitutions:
-  project: WirelessAP2 power cycler
+  friendly_name: WirelessAP2 power cycler
   id: wirelessap2_power_cycler
   hostname: plug-wirelessap2
   ip: 10.0.20.66
@@ -33,7 +33,7 @@ output:
 
 switch:
   - platform: gpio
-    #name: $project
+    #name: $friendly_name
     id: relay
     pin: $relay_gpio
     internal: true

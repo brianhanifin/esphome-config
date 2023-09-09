@@ -2,7 +2,7 @@
 # Sonoff S31 power monitoring plug
 #
 substitutions:
-  project: Troodon power monitor
+  friendly_name: Troodon power monitor
   id: troodon_power_monitor
   hostname: "power-troodon"
   comment: "Master power for Troodon 3D printer (including Klipper/Moonraker). (sonoff_s31_03)"

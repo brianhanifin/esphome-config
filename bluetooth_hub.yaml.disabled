@@ -2,7 +2,7 @@
 # ESP32 BLE Hub
 #
 substitutions:
-  project: Bluetooth Hub
+  friendly_name: Bluetooth Hub
   id: bluetooth_hub
   hostname: bluetooth-hub
 

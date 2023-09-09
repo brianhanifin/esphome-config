@@ -2,7 +2,7 @@
 platform: cse7766
 update_interval: 5s
 current:
-  name: $project current
+  name: $friendly_name current
   entity_category: diagnostic
   disabled_by_default: true
   device_class: current
@@ -10,7 +10,7 @@ current:
   unit_of_measurement: A
   accuracy_decimals: 1
 voltage:
-  name: $project voltage
+  name: $friendly_name voltage
   entity_category: diagnostic
   disabled_by_default: true
   device_class: voltage
@@ -18,14 +18,14 @@ voltage:
   unit_of_measurement: V
   accuracy_decimals: 0
 power:
-  name: $project power
+  name: $friendly_name power
   entity_category: diagnostic
   device_class: energy
   state_class: measurement
   unit_of_measurement: W
   accuracy_decimals: 0
 energy:
-  name: $project energy
+  name: $friendly_name energy
   device_class: energy
   state_class: total_increasing
   unit_of_measurement: kWh

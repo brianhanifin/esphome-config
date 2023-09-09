@@ -1,6 +1,6 @@
 ---
 platform: uptime
-name: $project Uptime
+name: $friendly_name Uptime
 unit_of_measurement: h
 entity_category: diagnostic
 filters:

@@ -2,7 +2,7 @@
 # Luntak brand Tuya Plug (plug02)
 #
 substitutions:
-  project: plug02
+  friendly_name: plug02
   id: plug02
   hostname: "plug-driveway-flood"
   ip: 10.0.20.62
@@ -33,7 +33,7 @@ output:
 
 switch:
   - platform: gpio
-    #name: $project
+    #name: $friendly_name
     id: relay
     pin: $relay_gpio
     internal: true

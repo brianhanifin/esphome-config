@@ -3,7 +3,7 @@
 # Location: Dining room light wall switch
 #
 substitutions:
-  project: Dining room light wall switch
+  friendly_name: Dining room light wall switch
   id: switch_dining
   hostname: switch-dining
   #ip: 10.0.20.9
@@ -47,7 +47,7 @@ binary_sensor:
   - platform: gpio
     pin:
       number: $button_gpio
-    #name: $project
+    #name: $friendly_name
     id: button
     internal: true
     #disabled_by_default: true

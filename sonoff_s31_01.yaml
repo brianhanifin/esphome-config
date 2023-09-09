@@ -2,7 +2,7 @@
 # Sonoff S31 Power Monitoring Plug, Always On
 #
 substitutions:
-  project: Glowforge power monitor
+  friendly_name: Glowforge power monitor
   id: powerglowforge
   hostname: power-glowforge
   ip: 10.0.20.43
